@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <item name="rvProductos" type="id" />
+    <item name="rvCarrito" type="id" />
+    <item name="map_fragment" type="id" />
+</resources>

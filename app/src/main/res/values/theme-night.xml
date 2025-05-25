@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Colores del tema oscuro -->
+    <color name="colorPrimary">#6C63FF</color>
+    <color name="colorPrimaryDark">#5A52D1</color>
+    <color name="colorAccent">#4ECDC4</color>
+    <color name="windowBackground">#121212</color>
+    <color name="textColorPrimary">#FFFFFF</color>
+</resources>

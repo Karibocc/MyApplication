@@ -1,0 +1,16 @@
+<resources>
+    <string name="app_name">My Application</string>
+    <string name="password">Contraseña</string>
+    <string name="iniciar_sesion">Iniciar Sesión</string>
+    <string name="ingresar_con_google">Ingresar con Google</string>
+    <string name="usuario">Usuario</string>
+    <string name="registrar">Registrar</string>
+    <string name="es_administrador">Es administrador</string>
+    <string name="add_product">Agregar producto</string>
+    <string name="home">Home</string>
+    <string name="profile">Profile</string>
+    <string name="home_fragment">Home Fragment</string>
+    <string name="edit_product">Editar producto</string>
+    <string name="delete_product">Eliminar producto</string>
+    <string name="desc_my_location">Mi ubicación</string>
+</resources>
