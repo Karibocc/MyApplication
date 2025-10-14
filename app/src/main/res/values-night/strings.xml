@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <string name="hola_mundo_estoy_aqui">Hola Mundo Estoy Aquí</string>
+    <string name="mensaje_inicio">Inicia una nueva aventura con Natural Cam y descubre una nueva forma de ver el mundo</string>
+    <string name="comienza">Comienza</string>
+    <string name="registrate">Regístrate</string>
+    <string name="correo_electronico">Correo Electrónico</string>
+    <string name="inicia_sesion_con_google">Inicia Sesión con Google</string>
+    <string name="api_key_google_inicio" tools:ignore="ExtraTranslation">320472270643-qmij4d6eap0cfu2l7jmp6jdh5qmegc6h.apps.googleusercontent.com</string>
+</resources>

@@ -5,7 +5,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:padding="24dp"
-    android:gravity="center">
+    android:gravity="center"
+    tools:context=".activities.RegistroActivity">
 
     <EditText
         android:id="@+id/etUsuario"

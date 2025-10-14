@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Margen estándar para FAB -->
+    <dimen name="fab_margin">16dp</dimen>
+
+    <!-- Otros valores dimensionales que necesites -->
+    <dimen name="text_size_medium">14sp</dimen>
+    <dimen name="padding_standard">8dp</dimen>
+</resources>

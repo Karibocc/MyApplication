@@ -1,16 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">My Application</string>
+
+    <!-- Login Screen -->
+    <string name="usuario">Email</string>
     <string name="password">Contraseña</string>
-    <string name="iniciar_sesion">Iniciar Sesión</string>
+    <string name="iniciar_sesion">Iniciar sesión</string>
     <string name="ingresar_con_google">Ingresar con Google</string>
-    <string name="usuario">Usuario</string>
     <string name="registrar">Registrar</string>
     <string name="es_administrador">Es administrador</string>
+    <string name="email_required">Por favor, ingresa tu email</string>
+    <string name="password_required">Por favor, ingresa tu contraseña</string>
+    <string name="password_length_error">La contraseña debe tener al menos 6 caracteres</string>
+    <string name="auth_failed">Autenticación fallida</string>
+    <string name="google_auth_failed">Error en autenticación con Google</string>
+    <string name="login_cancelled">Inicio de sesión cancelado</string>
+    <string name="default_web_client_id">tu-id-de-cliente-aqui</string>
+
+    <!-- Navigation -->
+    <string name="home">Inicio</string>
+    <string name="profile">Perfil</string>
+    <string name="home_fragment">Fragmento de inicio</string>
+
+    <!-- Product Management -->
     <string name="add_product">Agregar producto</string>
-    <string name="home">Home</string>
-    <string name="profile">Profile</string>
-    <string name="home_fragment">Home Fragment</string>
     <string name="edit_product">Editar producto</string>
     <string name="delete_product">Eliminar producto</string>
-    <string name="desc_my_location">Mi ubicación</string>
+    <string name="product_image">Imagen del producto</string>
+    <string name="select_image">Seleccionar imagen</string>
+    <string name="product_name">Nombre del producto</string>
+    <string name="product_description">Descripción</string>
+    <string name="product_price">Precio</string>
+    <string name="save_product">Guardar producto</string>
+    <string name="add_product_description">Agregar nuevo producto</string>
+    <string name="capture_image">Capturar imagen</string>
+
+    <!-- Map -->
+    <string name="desc_my_location">Centrar mapa en mi ubicación actual</string>
+    <string name="map_preview_text">Vista previa del mapa de Google</string>
+
+    <!-- Messages -->
+    <string name="error_empty_field">Este campo no puede estar vacío</string>
+    <string name="error_invalid_price">Precio inválido</string>
+    <string name="product_saved">Producto guardado con éxito</string>
+    <string name="error_saving_product">Error al guardar el producto</string>
+    <string name="ver_productos">Ver productos</string>
+    <string name="products">Productos</string>
+
+    <!-- Carrito -->
+    <string name="cart">Carrito</string>
+    <string name="titulo_carrito">Mi carrito</string>
+    <string name="carrito_vacio">Tu carrito está vacío</string>
+    <string name="comprar">Comprar</string>
+    <string name="limpiar_carrito">Limpiar carrito</string>
+    <string name="total">Total:</string>
+    <string name="stock_disponible">Stock disponible</string>
+    <string name="aumentar_cantidad">Aumentar cantidad</string>
+    <string name="reducir_cantidad">Reducir cantidad</string>
+    <string name="eliminar_producto">Eliminar producto</string>
+    <string name="precio">Precio</string>
+    <string name="stock">Stock</string>
+    <string name="_0_00">$0.00</string>
 </resources>

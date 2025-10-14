@@ -5,24 +5,69 @@
     android:id="@+id/nav_graph"
     app:startDestination="@id/homeFragment">
 
+    <!-- Home Fragment -->
     <fragment
         android:id="@+id/homeFragment"
-        android:label="Home"
+        android:name="com.example.myapplication.fragments.HomeFragment"
+        android:label="Inicio"
         tools:layout="@layout/fragment_home">
+
+        <action
+            android:id="@+id/action_home_to_products"
+            app:destination="@id/productsFragment" />
 
         <action
             android:id="@+id/action_home_to_profile"
             app:destination="@id/profileFragment" />
+
+        <action
+            android:id="@+id/action_home_to_carrito"
+            app:destination="@id/carritoFragment" />
     </fragment>
 
+    <!-- Profile Fragment -->
     <fragment
         android:id="@+id/profileFragment"
-        android:label="Profile"
+        android:name="com.example.myapplication.fragments.ProfileFragment"
+        android:label="Perfil"
         tools:layout="@layout/fragment_profile">
 
         <action
             android:id="@+id/action_profile_to_home"
             app:destination="@id/homeFragment"
-            app:popUpTo="@id/homeFragment" />
+            app:popUpTo="@id/homeFragment"
+            app:popUpToInclusive="false" />
+    </fragment>
+
+    <!-- Products Fragment -->
+    <fragment
+        android:id="@+id/productsFragment"
+        android:name="com.example.myapplication.fragments.ProductsFragment"
+        android:label="Productos"
+        tools:layout="@layout/fragment_products">
+
+        <action
+            android:id="@+id/action_products_to_home"
+            app:destination="@id/homeFragment"
+            app:popUpTo="@id/homeFragment"
+            app:popUpToInclusive="false" />
+
+        <action
+            android:id="@+id/action_products_to_carrito"
+            app:destination="@id/carritoFragment" />
+    </fragment>
+
+    <!-- Carrito Fragment -->
+    <fragment
+        android:id="@+id/carritoFragment"
+        android:name="com.example.myapplication.fragments.CarritoFragment"
+        android:label="Carrito"
+        tools:layout="@layout/fragment_carrito">
+
+        <action
+            android:id="@+id/action_carrito_to_home"
+            app:destination="@id/homeFragment"
+            app:popUpTo="@id/homeFragment"
+            app:popUpToInclusive="false" />
     </fragment>
 </navigation>

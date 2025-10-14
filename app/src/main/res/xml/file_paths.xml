@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Almacenamiento interno -->
+    <files-path name="internal_files" path="." />                  <!-- /data/data/<package>/files/ -->
+    <files-path name="my_custom_folder" path="my_files/" />        <!-- /data/data/<package>/files/my_files/ -->
+    <cache-path name="internal_cache" path="." />                  <!-- /data/data/<package>/cache/ -->
+
+    <!-- Almacenamiento externo privado (requiere permisos) -->
+    <external-files-path name="external_private_files" path="." /> <!-- /storage/emulated/0/Android/data/<package>/files/ -->
+    <external-cache-path name="external_private_cache" path="." />  <!-- /storage/emulated/0/Android/data/<package>/cache/ -->
+
+    <!-- Almacenamiento externo público (ej: Descargas) -->
+    <external-path name="downloads" path="Download/" />             <!-- /storage/emulated/0/Download/ -->
+    <external-path name="dcim" path="DCIM/" />                      <!-- /storage/emulated/0/DCIM/ -->
+</paths>
