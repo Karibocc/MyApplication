@@ -6,7 +6,8 @@
     android:layout_height="match_parent"
     android:padding="24dp"
     android:gravity="center"
-    tools:context="com.example.app.activities.LoginActivity">
+    android:background="@android:color/white"
+    tools:context="com.example.myapplication.activities.LoginActivity">
 
     <EditText
         android:id="@+id/etEmail"

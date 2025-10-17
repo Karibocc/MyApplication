@@ -44,15 +44,33 @@ class LoginActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_login)
+
+        // ✅ Solución agregada: evitar pantalla en blanco asegurando layout visible
+        try {
+            setContentView(R.layout.activity_login)
+        } catch (e: Exception) {
+            Log.e(TAG, "Error al cargar layout activity_login", e)
+            showToast("Error cargando interfaz de inicio de sesión")
+            return
+        }
 
         // Inicializar Firebase Auth
         auth = Firebase.auth
 
-        // Redirigir si el usuario ya está autenticado
+        // Mostrar en Logcat si hay un usuario autenticado
+        Log.d(TAG, "Usuario actual: ${auth.currentUser?.email ?: "No hay sesión activa"}")
+
+        // ✅ Solución agregada: verificar si MainActivity puede mostrarse antes de redirigir
         if (auth.currentUser != null) {
-           navigateToMain()
-           return
+            try {
+                val intent = Intent(this, MainActivity::class.java)
+                startActivity(intent)
+                finish()
+                return
+            } catch (e: Exception) {
+                Log.e(TAG, "Error al redirigir a MainActivity", e)
+                showToast("Error cargando pantalla principal, mostrando login.")
+            }
         }
 
         initializeViews()
@@ -154,10 +172,15 @@ class LoginActivity : AppCompatActivity() {
     }
 
     private fun navigateToMain() {
-        startActivity(Intent(this, MainActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-        })
-        finish()
+        try {
+            startActivity(Intent(this, MainActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            })
+            finish()
+        } catch (e: Exception) {
+            Log.e(TAG, "Error al abrir MainActivity", e)
+            showToast("No se pudo abrir la pantalla principal")
+        }
     }
 
     private fun navigateToRegister() {
@@ -172,3 +195,4 @@ class LoginActivity : AppCompatActivity() {
         private const val TAG = "LoginActivity"
     }
 }
+

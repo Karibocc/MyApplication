@@ -2,6 +2,7 @@ plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("org.jetbrains.kotlin.kapt")
+    id ("com.google.gms.google-services")
 
 
 
@@ -13,7 +14,7 @@ android {
 
     defaultConfig {
         applicationId = "com.example.myapplication"
-        minSdk = 21
+        minSdk = 23
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
@@ -60,8 +61,8 @@ dependencies {
     implementation("com.google.android.gms:play-services-location:21.1.0")
 
     // Firebase
-    implementation(platform("com.google.firebase:firebase-bom:32.8.0"))
-    implementation("com.google.firebase:firebase-auth-ktx")
+    implementation(platform("com.google.firebase:firebase-bom:33.2.0"))
+    implementation("com.google.firebase:firebase-auth")
 
     // Glide
     implementation("com.github.bumptech.glide:glide:4.16.0")
