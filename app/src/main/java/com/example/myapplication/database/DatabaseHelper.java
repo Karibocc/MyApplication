@@ -5,6 +5,9 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.content.ContentValues;
 import android.database.Cursor;
+import android.util.Log;
+import java.util.ArrayList;
+import java.util.List;
 
 public class DatabaseHelper extends SQLiteOpenHelper {
 
@@ -136,42 +139,70 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public long insertarUsuario(String username, String password, String rol) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
-        values.put(COLUMN_USERNAME, username);
-        values.put(COLUMN_PASSWORD, password);
+
+        // ✅ CORRECCIÓN CRUCIAL: Normalizar username a minúsculas
+        String usernameNormalizado = username.toLowerCase().trim();
+        String passwordLimpia = password.trim();
+
+        Log.d("DatabaseHelper", "🔐 Insertando usuario: " + usernameNormalizado + ", Rol: " + rol);
+
+        values.put(COLUMN_USERNAME, usernameNormalizado);
+        values.put(COLUMN_PASSWORD, passwordLimpia);
         values.put(COLUMN_ROL, rol);
         return db.insert(TABLE_USUARIOS, null, values);
     }
 
     public boolean usuarioExiste(String username) {
         SQLiteDatabase db = this.getReadableDatabase();
+
+        // ✅ CORRECCIÓN CRUCIAL: Normalizar username a minúsculas
+        String usernameNormalizado = username.toLowerCase().trim();
+
+        Log.d("DatabaseHelper", "🔍 Verificando si usuario existe: " + usernameNormalizado);
+
         Cursor cursor = db.query(TABLE_USUARIOS,
                 new String[]{COLUMN_USERNAME},
                 COLUMN_USERNAME + " = ?",
-                new String[]{username},
+                new String[]{usernameNormalizado},
                 null, null, null);
         boolean existe = cursor.moveToFirst();
+
+        Log.d("DatabaseHelper", "📊 Usuario existe: " + existe);
         cursor.close();
         return existe;
     }
 
     public boolean validarUsuario(String username, String password) {
         SQLiteDatabase db = this.getReadableDatabase();
+
+        // ✅ CORRECCIÓN CRUCIAL: Normalizar username a minúsculas
+        String usernameNormalizado = username.toLowerCase().trim();
+        String passwordLimpia = password.trim();
+
+        Log.d("DatabaseHelper", "🔑 Validando usuario: " + usernameNormalizado);
+
         Cursor cursor = db.query(TABLE_USUARIOS,
                 null,
                 COLUMN_USERNAME + " = ? AND " + COLUMN_PASSWORD + " = ?",
-                new String[]{username, password},
+                new String[]{usernameNormalizado, passwordLimpia},
                 null, null, null);
         boolean valido = cursor.moveToFirst();
+
+        Log.d("DatabaseHelper", "✅ Validación exitosa: " + valido);
         cursor.close();
         return valido;
     }
 
     public String obtenerRol(String username) {
         SQLiteDatabase db = this.getReadableDatabase();
+
+        // ✅ CORRECCIÓN CRUCIAL: Normalizar username a minúsculas
+        String usernameNormalizado = username.toLowerCase().trim();
+
         Cursor cursor = db.query(TABLE_USUARIOS,
                 new String[]{COLUMN_ROL},
                 COLUMN_USERNAME + " = ?",
-                new String[]{username},
+                new String[]{usernameNormalizado},
                 null, null, null);
         String rol = "";
         if (cursor.moveToFirst()) {
@@ -183,13 +214,63 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     public Cursor obtenerUsuarioPorNombre(String username) {
         SQLiteDatabase db = this.getReadableDatabase();
+
+        // ✅ CORRECCIÓN CRUCIAL: Normalizar username a minúsculas
+        String usernameNormalizado = username.toLowerCase().trim();
+
+        Log.d("DatabaseHelper", "👤 Obteniendo usuario por nombre: " + usernameNormalizado);
+
         return db.query(
                 TABLE_USUARIOS,
                 new String[]{COLUMN_USERNAME, COLUMN_PASSWORD, COLUMN_ROL},
                 COLUMN_USERNAME + " = ?",
-                new String[]{username},
+                new String[]{usernameNormalizado},
                 null, null, null
         );
+    }
+
+    // ✅ NUEVO MÉTODO AGREGADO: Obtener todos los usuarios
+    public Cursor obtenerTodosLosUsuarios() {
+        SQLiteDatabase db = this.getReadableDatabase();
+        return db.query(
+                TABLE_USUARIOS,
+                new String[]{COLUMN_USERNAME, COLUMN_PASSWORD, COLUMN_ROL},
+                null, null, null, null,
+                COLUMN_USERNAME + " ASC"
+        );
+    }
+
+    // ✅ NUEVO MÉTODO AGREGADO: Obtener todos los usuarios en formato List para migración
+    public List<Usuario> obtenerTodosLosUsuariosParaMigracion() {
+        SQLiteDatabase db = this.getReadableDatabase();
+        List<Usuario> usuarios = new ArrayList<>();
+        Cursor cursor = null;
+
+        try {
+            cursor = db.query(
+                    TABLE_USUARIOS,
+                    new String[]{COLUMN_USERNAME, COLUMN_PASSWORD, COLUMN_ROL},
+                    null, null, null, null,
+                    COLUMN_USERNAME + " ASC"
+            );
+
+            while (cursor.moveToNext()) {
+                String username = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_USERNAME));
+                String password = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_PASSWORD));
+                String rol = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_ROL));
+                usuarios.add(new Usuario(username, password, rol));
+            }
+
+            Log.d("DatabaseHelper", "📊 Usuarios encontrados para migración: " + usuarios.size());
+        } catch (Exception e) {
+            Log.e("DatabaseHelper", "❌ Error obteniendo usuarios para migración", e);
+        } finally {
+            if (cursor != null) {
+                cursor.close();
+            }
+        }
+
+        return usuarios;
     }
 
     // OPERACIONES DEL CARRITO
@@ -344,5 +425,18 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
         cursor.close();
         return cantidad;
+    }
+
+    // ✅ NUEVA CLASE INTERNA: Para representar usuarios en la migración
+    public static class Usuario {
+        public String username;
+        public String password;
+        public String rol;
+
+        public Usuario(String username, String password, String rol) {
+            this.username = username;
+            this.password = password;
+            this.rol = rol;
+        }
     }
 }

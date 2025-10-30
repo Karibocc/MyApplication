@@ -1,6 +1,75 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-             android:layout_width="match_parent"
-             android:layout_height="match_parent">
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="vertical"
+    android:padding="24dp"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/white"
+    tools:context=".activities.ClienteActivity">
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+    <!-- Header -->
+    <TextView
+        android:text="Bienvenido, Cliente"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:textColor="@color/colorPrimary"
+        android:gravity="center"
+        android:layout_marginBottom="32dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    <!-- Información del usuario -->
+    <TextView
+        android:id="@+id/tvUserInfo"
+        android:text="Cargando información..."
+        android:textSize="16sp"
+        android:textColor="@color/black"
+        android:gravity="center"
+        android:layout_marginBottom="24dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    <!-- Opciones del cliente -->
+    <Button
+        android:id="@+id/btnVerProductos"
+        android:text="Ver Productos"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:backgroundTint="@color/colorPrimary"
+        android:textColor="@color/white"
+        android:textSize="16sp"
+        android:layout_marginBottom="16dp" />
+
+    <Button
+        android:id="@+id/btnVerCarrito"
+        android:text="Ver Carrito"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:backgroundTint="@color/colorSecondary"
+        android:textColor="@color/black"
+        android:textSize="16sp"
+        android:layout_marginBottom="16dp" />
+
+    <Button
+        android:id="@+id/btnMisPedidos"
+        android:text="Mis Pedidos"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:backgroundTint="@android:color/white"
+        android:textColor="@color/colorPrimary"
+        android:textSize="16sp"
+        android:layout_marginBottom="32dp" />
+
+    <!-- Cerrar sesión -->
+    <Button
+        android:id="@+id/btnCerrarSesion"
+        android:text="Cerrar Sesión"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:backgroundTint="@android:color/white"
+        android:textColor="@color/colorPrimary"
+        android:textSize="14sp"
+        android:textStyle="bold" />
+
+</LinearLayout>

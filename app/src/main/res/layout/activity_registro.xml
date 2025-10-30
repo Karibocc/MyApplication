@@ -1,40 +1,62 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:padding="24dp"
     android:gravity="center"
+    android:background="@color/white"
     tools:context=".activities.RegistroActivity">
 
     <EditText
         android:id="@+id/etUsuario"
         android:hint="@string/usuario"
-    android:layout_width="match_parent"
-    android:layout_height="86dp"
-    android:layout_marginBottom="16dp" />
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:layout_marginBottom="16dp"
+        android:textColor="@color/black"
+        android:textColorHint="@color/colorPrimary"
+        android:backgroundTint="@color/colorPrimary"
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp"
+        android:inputType="textEmailAddress"
+        android:autofillHints="username"/>
 
     <EditText
         android:id="@+id/etPassword"
         android:hint="@string/password"
         android:inputType="textPassword"
-    android:layout_width="match_parent"
-    android:layout_height="86dp"
-    android:layout_marginBottom="16dp" />
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:layout_marginBottom="16dp"
+        android:textColor="@color/black"
+        android:textColorHint="@color/colorPrimary"
+        android:backgroundTint="@color/colorPrimary"
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp"
+        android:autofillHints="password"/>
 
     <com.google.android.material.switchmaterial.SwitchMaterial
-    android:id="@+id/switchRol"
-    android:text="@string/es_administrador"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:layout_gravity="start"
-    android:layout_marginBottom="16dp" />
+        android:id="@+id/switchRol"
+        android:text="@string/es_administrador"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="start"
+        android:layout_marginBottom="16dp"
+        android:textColor="@color/black"
+        app:trackTint="@color/colorPrimary"
+        app:thumbTint="@color/colorPrimary"/>
 
     <Button
         android:id="@+id/btnRegistrar"
         android:text="@string/registrar"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        style="@style/Widget.Material3.Button.OutlinedButton" />
+        android:layout_height="48dp"
+        android:backgroundTint="@color/colorPrimary"
+        android:textColor="@color/white"
+        android:textSize="16sp"
+        android:textStyle="bold"/>
+
 </LinearLayout>

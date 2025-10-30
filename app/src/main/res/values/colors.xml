@@ -1,8 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
-    <resources>
-        <color name="colorPrimary">#6200EE</color>
-        <color name="colorPrimaryVariant">#3700B3</color>
-        <color name="colorSecondary">#03DAC5</color>
-        <color name="white">#FFFFFF</color>
-        <color name="black">#000000</color>
-    </resources>
+<resources>
+    <!--  Colores principales -->
+    <color name="colorPrimary">#6200EE</color>
+    <color name="colorPrimaryVariant">#3700B3</color>
+    <color name="colorSecondary">#03DAC5</color>
+
+    <!--  Colores neutrales -->
+    <color name="white">#FFFFFF</color>
+    <color name="black">#000000</color>
+
+    <!-- Fondo predeterminado (usado en map_preview.xml) -->
+    <color name="design_default_color_background">#FFFFFF</color>
+
+    <!--  Color personalizado para tu FAB -->
+    <color name="verde">#3FCA10</color>
+</resources>

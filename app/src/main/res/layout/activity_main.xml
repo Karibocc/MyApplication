@@ -5,26 +5,77 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/white"
     tools:context=".activities.MainActivity">
 
-    <!-- FragmentContainerView debe estar primero para el layout_above -->
+    <!-- ✅ CORREGIDO: FragmentContainerView con altura definida correctamente -->
     <androidx.fragment.app.FragmentContainerView
         android:id="@+id/nav_host_fragment"
         android:name="androidx.navigation.fragment.NavHostFragment"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="0dp"
         android:layout_above="@id/bottom_nav"
+        android:layout_alignParentTop="true"
+        android:background="@color/white"
         app:defaultNavHost="true"
-        app:navGraph="@navigation/nav_graph" />
+        app:navGraph="@navigation/nav_graph"
+        tools:ignore="FragmentTag" />
 
-    <!-- BottomNavigationView -->
+    <!-- BottomNavigationView con colores seguros -->
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottom_nav"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:background="?attr/colorSurface"
+        android:elevation="8dp"
         app:menu="@menu/bottom_nav_menu"
-        app:labelVisibilityMode="labeled" />
+        app:labelVisibilityMode="labeled"
+        app:itemIconTint="@color/colorPrimary"
+        app:itemTextColor="@color/colorPrimary" />
+
+    <!-- Layout de emergencia -->
+    <LinearLayout
+        android:id="@+id/emergency_layout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:padding="24dp"
+        android:background="@color/white"
+        android:visibility="gone"
+        tools:ignore="RelativeOverlap">
+
+        <TextView
+            android:id="@+id/tv_emergency_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Modo de Emergencia"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:textColor="@color/colorPrimary"
+            android:layout_marginBottom="16dp" />
+
+        <TextView
+            android:id="@+id/tv_emergency_message"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="La navegación no está disponible temporalmente"
+            android:textSize="16sp"
+            android:textColor="@color/black"
+            android:gravity="center"
+            android:layout_marginBottom="32dp" />
+
+        <Button
+            android:id="@+id/btn_emergency_logout"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:text="Cerrar Sesión"
+            android:backgroundTint="@color/colorPrimary"
+            android:textColor="@color/white"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+    </LinearLayout>
 
 </RelativeLayout>

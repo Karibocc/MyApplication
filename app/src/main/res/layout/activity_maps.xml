@@ -7,6 +7,7 @@
     android:layout_height="match_parent"
     tools:context=".maps.MapsActivity">
 
+    <!-- 🗺 Fragmento del mapa -->
     <androidx.fragment.app.FragmentContainerView
         android:id="@+id/map_fragment"
         android:name="com.google.android.gms.maps.SupportMapFragment"
@@ -18,18 +19,22 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
+    <!-- 🎯 Botón flotante con color dinámico -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/btnMyLocation"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_margin="@dimen/fab_margin"
-        android:layout_marginEnd="12dp"
+        android:layout_marginEnd="16dp"
         android:layout_marginBottom="184dp"
         android:contentDescription="@string/desc_my_location"
         android:src="@drawable/ic_my_location"
+        app:backgroundTint="@color/verde"
+        app:tint="@android:color/white"
         app:elevation="8dp"
+        app:pressedTranslationZ="12dp"
+        app:rippleColor="@color/fab_ripple_color"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:tint="@android:color/white" />
+        app:layout_constraintEnd_toEndOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
+
