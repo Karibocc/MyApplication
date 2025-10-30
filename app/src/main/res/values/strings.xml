@@ -61,4 +61,8 @@
     <string name="precio">Precio</string>
     <string name="stock">Stock</string>
     <string name="_0_00">$0.00</string>
+
+    <!-- 🔹 Agregado para corregir error -->
+    <string name="imagen_producto">Imagen del producto</string>
 </resources>
+

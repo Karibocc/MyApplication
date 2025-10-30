@@ -10,6 +10,8 @@ import android.widget.TextView
 import androidx.fragment.app.Fragment
 import com.example.myapplication.R
 import com.example.myapplication.activities.LoginActivity
+import com.example.myapplication.managers.SessionManager
+import com.example.myapplication.models.Usuario
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 
@@ -32,7 +34,13 @@ class ProfileFragment : Fragment() {
         // Mostrar el correo del usuario autenticado
         val user = auth.currentUser
         if (user != null) {
-            tvUserEmail.text = "Usuario: ${user.email}"
+            // Verificamos si también está en la base de datos local
+            val usuarioLocal = Usuario.obtenerUsuarioPorNombre(requireContext(), user.email ?: "")
+            if (usuarioLocal != null) {
+                tvUserEmail.text = "Usuario: ${usuarioLocal.username}\nRol: ${usuarioLocal.rol}"
+            } else {
+                tvUserEmail.text = "Usuario Firebase: ${user.email}"
+            }
         } else {
             tvUserEmail.text = "Sin sesión activa"
         }
@@ -40,6 +48,7 @@ class ProfileFragment : Fragment() {
         // Cerrar sesión y volver al login
         btnLogout.setOnClickListener {
             auth.signOut()
+            SessionManager.logout(requireContext()) // limpia sesión local también
 
             val intent = Intent(requireContext(), LoginActivity::class.java)
             intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
@@ -49,3 +58,4 @@ class ProfileFragment : Fragment() {
         return view
     }
 }
+

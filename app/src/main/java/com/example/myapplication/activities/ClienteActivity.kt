@@ -52,7 +52,7 @@ class ClienteActivity : AppCompatActivity() {
             return
         }
 
-        // ✅ MEJORADO: Validar sesión antes de continuar
+        // ✅ Validar sesión activa (Firebase + SessionManager)
         try {
             Log.d(TAG, "🔍 Validando sesión del usuario...")
             val currentUser = auth.currentUser
@@ -86,17 +86,12 @@ class ClienteActivity : AppCompatActivity() {
     }
 
     private fun initializeViews() {
-        try {
-            tvUserInfo = findViewById(R.id.tvUserInfo)
-            btnVerProductos = findViewById(R.id.btnVerProductos)
-            btnVerCarrito = findViewById(R.id.btnVerCarrito)
-            btnMisPedidos = findViewById(R.id.btnMisPedidos)
-            btnCerrarSesion = findViewById(R.id.btnCerrarSesion)
-            Log.d(TAG, "✅ Vistas inicializadas correctamente")
-        } catch (e: Exception) {
-            Log.e(TAG, "❌ ERROR inicializando vistas: ${e.message}", e)
-            throw e // Relanzar para manejo superior
-        }
+        tvUserInfo = findViewById(R.id.tvUserInfo)
+        btnVerProductos = findViewById(R.id.btnVerProductos)
+        btnVerCarrito = findViewById(R.id.btnVerCarrito)
+        btnMisPedidos = findViewById(R.id.btnMisPedidos)
+        btnCerrarSesion = findViewById(R.id.btnCerrarSesion)
+        Log.d(TAG, "✅ Vistas inicializadas correctamente")
     }
 
     private fun setupUserInfo() {
@@ -105,10 +100,26 @@ class ClienteActivity : AppCompatActivity() {
             val email = currentUser?.email ?: SessionManager.getCurrentUserEmail(this) ?: ""
 
             if (email.isNotEmpty()) {
-                val usuario = Usuario.obtenerUsuarioPorNombre(this, email)
-                val userInfo = "Usuario: $email\nRol: ${usuario?.rol ?: "cliente"}"
-                tvUserInfo.text = userInfo
-                Log.d(TAG, "✅ Información de usuario cargada: $email")
+                // ✅ Verificar usuario tanto en SQLite (DatabaseHelper) como en Firebase
+                val usuarioLocal = Usuario.obtenerUsuarioPorNombre(this, email)
+
+                if (usuarioLocal != null) {
+                    // Usuario encontrado en base local
+                    val userInfo = "Usuario: $email\nRol: ${usuarioLocal.rol}"
+                    tvUserInfo.text = userInfo
+                    Log.d(TAG, "✅ Usuario encontrado en SQLite: ${usuarioLocal.username}")
+                } else {
+                    // Si no existe localmente, se guarda como cliente predeterminado
+                    val nuevoUsuario = Usuario(email, "", "cliente")
+                    val guardado = Usuario.registrarUsuario(this, nuevoUsuario)
+                    if (guardado) {
+                        Log.d(TAG, "✅ Usuario agregado a SQLite (sin registro previo)")
+                        tvUserInfo.text = "Usuario: $email\nRol: cliente"
+                    } else {
+                        Log.w(TAG, "⚠️ No se pudo registrar localmente al usuario")
+                        tvUserInfo.text = "Usuario: $email\nRol: cliente"
+                    }
+                }
             } else {
                 tvUserInfo.text = "No se pudo cargar la información del usuario"
                 Log.w(TAG, "⚠️ No se pudo obtener email del usuario")
@@ -120,48 +131,44 @@ class ClienteActivity : AppCompatActivity() {
     }
 
     private fun setupClickListeners() {
-        try {
-            btnVerProductos.setOnClickListener {
-                try {
-                    Log.d(TAG, "🖱️ Clic en Ver Productos")
-                    startActivity(Intent(this, MainActivity::class.java))
-                } catch (e: Exception) {
-                    Log.e(TAG, "❌ ERROR navegando a productos: ${e.message}", e)
-                    showToast("Error abriendo productos")
-                }
+        btnVerProductos.setOnClickListener {
+            try {
+                Log.d(TAG, "🖱️ Clic en Ver Productos")
+                startActivity(Intent(this, MainActivity::class.java))
+            } catch (e: Exception) {
+                Log.e(TAG, "❌ ERROR navegando a productos: ${e.message}", e)
+                showToast("Error abriendo productos")
             }
-
-            btnVerCarrito.setOnClickListener {
-                try {
-                    Log.d(TAG, "🖱️ Clic en Ver Carrito")
-                    showToast("Funcionalidad de carrito en desarrollo")
-                } catch (e: Exception) {
-                    Log.e(TAG, "❌ ERROR en botón carrito: ${e.message}", e)
-                }
-            }
-
-            btnMisPedidos.setOnClickListener {
-                try {
-                    Log.d(TAG, "🖱️ Clic en Mis Pedidos")
-                    showToast("Funcionalidad de pedidos en desarrollo")
-                } catch (e: Exception) {
-                    Log.e(TAG, "❌ ERROR en botón pedidos: ${e.message}", e)
-                }
-            }
-
-            btnCerrarSesion.setOnClickListener {
-                try {
-                    Log.d(TAG, "🖱️ Clic en Cerrar Sesión")
-                    cerrarSesion()
-                } catch (e: Exception) {
-                    Log.e(TAG, "❌ ERROR en botón cerrar sesión: ${e.message}", e)
-                }
-            }
-
-            Log.d(TAG, "✅ Listeners configurados correctamente")
-        } catch (e: Exception) {
-            Log.e(TAG, "❌ ERROR configurando listeners: ${e.message}", e)
         }
+
+        btnVerCarrito.setOnClickListener {
+            try {
+                Log.d(TAG, "🖱️ Clic en Ver Carrito")
+                showToast("Funcionalidad de carrito en desarrollo")
+            } catch (e: Exception) {
+                Log.e(TAG, "❌ ERROR en botón carrito: ${e.message}", e)
+            }
+        }
+
+        btnMisPedidos.setOnClickListener {
+            try {
+                Log.d(TAG, "🖱️ Clic en Mis Pedidos")
+                showToast("Funcionalidad de pedidos en desarrollo")
+            } catch (e: Exception) {
+                Log.e(TAG, "❌ ERROR en botón pedidos: ${e.message}", e)
+            }
+        }
+
+        btnCerrarSesion.setOnClickListener {
+            try {
+                Log.d(TAG, "🖱️ Clic en Cerrar Sesión")
+                cerrarSesion()
+            } catch (e: Exception) {
+                Log.e(TAG, "❌ ERROR en botón cerrar sesión: ${e.message}", e)
+            }
+        }
+
+        Log.d(TAG, "✅ Listeners configurados correctamente")
     }
 
     private fun cerrarSesion() {
@@ -169,10 +176,8 @@ class ClienteActivity : AppCompatActivity() {
             Log.d(TAG, "🔒 Cerrando sesión...")
             auth.signOut()
             SessionManager.logout(this)
-
             showToast("Sesión cerrada")
             Log.d(TAG, "✅ Sesión cerrada exitosamente")
-
             redirectToLogin()
         } catch (e: Exception) {
             Log.e(TAG, "❌ ERROR cerrando sesión: ${e.message}", e)
@@ -181,7 +186,6 @@ class ClienteActivity : AppCompatActivity() {
         }
     }
 
-    // ✅ NUEVA FUNCIÓN: Redirección segura a login
     private fun redirectToLogin() {
         try {
             Log.d(TAG, "🔄 Redirigiendo a LoginActivity...")
@@ -196,7 +200,6 @@ class ClienteActivity : AppCompatActivity() {
         }
     }
 
-    // ✅ NUEVA FUNCIÓN: Mostrar toasts con manejo de errores
     private fun showToast(message: String) {
         try {
             Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
@@ -209,7 +212,6 @@ class ClienteActivity : AppCompatActivity() {
     override fun onBackPressed() {
         try {
             Log.d(TAG, "🔙 Botón back presionado")
-            // Evitar que el usuario regrese al login con back button
             moveTaskToBack(true)
         } catch (e: Exception) {
             Log.e(TAG, "❌ ERROR en onBackPressed: ${e.message}", e)
@@ -217,7 +219,6 @@ class ClienteActivity : AppCompatActivity() {
         }
     }
 
-    // ✅ NUEVO: Logs en métodos del ciclo de vida
     override fun onStart() {
         super.onStart()
         Log.d(TAG, "📱 ClienteActivity onStart")

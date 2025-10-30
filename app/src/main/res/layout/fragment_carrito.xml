@@ -1,54 +1,67 @@
-<?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="16dp"
+    android:background="@color/white"
     tools:context=".fragments.CarritoFragment">
 
-    <TextView
-        android:id="@+id/tvEmpty"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_centerInParent="true"
-        android:text="tu_carrito_est_vacio"
-        android:textSize="18sp"
-        android:textAlignment="center"
-        android:visibility="gone"/>
-
+    <!-- Lista de productos en el carrito -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerViewCarrito"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_above="@id/llTotal"
         android:clipToPadding="false"
-        android:paddingBottom="72dp"/>
+        android:paddingBottom="100dp"
+        android:scrollbars="vertical"
+        tools:listitem="@layout/item_carrito" />
 
+    <!-- Texto que aparece cuando el carrito está vacío -->
+    <TextView
+        android:id="@+id/tvEmpty"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/carrito_vacio"
+        android:textSize="18sp"
+        android:textColor="@color/black"
+        android:layout_centerInParent="true"
+        android:visibility="gone"
+        android:textStyle="italic" />
+
+    <!-- Sección inferior con el total -->
     <LinearLayout
         android:id="@+id/llTotal"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:background="@color/cardview_light_background"
-        android:elevation="8dp"
         android:orientation="horizontal"
-        android:padding="16dp">
+        android:elevation="8dp"
+        android:padding="16dp"
+        android:gravity="center_vertical">
 
         <TextView
-            android:layout_width="0dp"
+            android:id="@+id/tvLabelTotal"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Total"
+            android:text="@string/total"
+            android:textColor="@color/black"
             android:textSize="18sp"
-            android:textStyle="bold"/>
+            android:textStyle="bold" />
 
         <TextView
             android:id="@+id/tvTotal"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/_0_00"
+            android:text="0.00"
+            android:textColor="@color/black"
             android:textSize="18sp"
-            android:textStyle="bold"/>
+            android:layout_marginStart="8dp"
+            android:textStyle="bold" />
     </LinearLayout>
 
 </RelativeLayout>
+
+
+
+

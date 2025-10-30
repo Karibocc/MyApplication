@@ -25,6 +25,9 @@ class CarritoFragment : Fragment() {
     private lateinit var tvTotal: TextView
     private lateinit var tvEmpty: TextView
 
+    // Lista global para mantener los productos del carrito
+    private var productosEnCarrito: MutableList<Producto> = mutableListOf()
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -44,8 +47,21 @@ class CarritoFragment : Fragment() {
         return view
     }
 
+    /**
+     * Carga los productos del carrito desde la base de datos y configura el adapter.
+     */
     private fun cargarCarrito() {
-        val productosEnCarrito = db.obtenerCarrito().toProductoList()
+        val cursor: Cursor? = try {
+            db.obtenerCarrito()
+        } catch (e: Exception) {
+            null
+        }
+
+        productosEnCarrito = if (cursor != null) {
+            cursorToProductoList(cursor).toMutableList()
+        } else {
+            mutableListOf()
+        }
 
         if (productosEnCarrito.isEmpty()) {
             tvEmpty.visibility = View.VISIBLE
@@ -68,52 +84,94 @@ class CarritoFragment : Fragment() {
         }
     }
 
+    /**
+     * Elimina un producto del carrito y actualiza la UI.
+     */
     private fun eliminarDelCarrito(producto: Producto) {
         val filasAfectadas = db.eliminarDelCarrito(producto.id)
         if (filasAfectadas > 0) {
             Toast.makeText(requireContext(), "${producto.nombre} eliminado", Toast.LENGTH_SHORT).show()
             cargarCarrito()
+        } else {
+            Toast.makeText(requireContext(), "Error al eliminar ${producto.nombre}", Toast.LENGTH_SHORT).show()
         }
     }
 
+    /**
+     * Actualiza la cantidad en la BD y en la lista local (sin romper la lógica existente).
+     */
     private fun actualizarCantidad(producto: Producto, nuevaCantidad: Int) {
         val stockDisponible = db.obtenerStockProducto(producto.id)
 
-        if (nuevaCantidad <= stockDisponible) {
-            db.actualizarCantidadEnCarrito(producto.id, nuevaCantidad)
-            actualizarTotal()
+        if (nuevaCantidad <= stockDisponible && nuevaCantidad > 0) {
+            val filas = db.actualizarCantidadEnCarrito(producto.id, nuevaCantidad)
+            if (filas > 0) {
+                val index = productosEnCarrito.indexOfFirst { it.id == producto.id }
+                if (index >= 0) {
+                    productosEnCarrito[index].cantidad = nuevaCantidad
+                    adapter.notifyItemChanged(index)
+                }
+                actualizarTotal()
+            }
+        } else if (nuevaCantidad <= 0) {
+            eliminarDelCarrito(producto)
         } else {
-            Toast.makeText(requireContext(), "No hay suficiente stock", Toast.LENGTH_SHORT).show()
-            cargarCarrito() // Recargar para mostrar cantidad actual
+            Toast.makeText(requireContext(), "No hay suficiente stock disponible", Toast.LENGTH_SHORT).show()
+            cargarCarrito()
         }
     }
 
+    /**
+     * Calcula y muestra el total del carrito.
+     */
     private fun actualizarTotal() {
-        val total = db.calcularTotalCarrito()
+        val total = try {
+            productosEnCarrito.sumOf { it.precio * it.cantidad }
+        } catch (e: Exception) {
+            0.0
+        }
         tvTotal.text = formatPrice(total)
     }
 
+    /**
+     * Formatea un número a formato de moneda (ej. $1,234.56).
+     */
     private fun formatPrice(price: Double): String {
         val format = NumberFormat.getCurrencyInstance(Locale("es", "MX"))
         return format.format(price)
     }
 
-    private fun Cursor.toProductoList(): List<Producto> {
-        return mutableListOf<Producto>().apply {
-            if (moveToFirst()) {
-                do {
-                    add(Producto(
-                        id = getInt(getColumnIndexOrThrow(DatabaseHelper.COLUMN_ID)),
-                        nombre = getString(getColumnIndexOrThrow(DatabaseHelper.COLUMN_NOMBRE)),
-                        descripcion = getString(getColumnIndexOrThrow(DatabaseHelper.COLUMN_DESCRIPCION)),
-                        precio = getDouble(getColumnIndexOrThrow(DatabaseHelper.COLUMN_PRECIO)),
-                        imagen_path = getString(getColumnIndexOrThrow(DatabaseHelper.COLUMN_IMAGEN_PATH)),
-                        stock = getInt(getColumnIndexOrThrow(DatabaseHelper.COLUMN_STOCK))
-                    ))
-                } while (moveToNext())
-            }
-            close()
+    /**
+     * Convierte un Cursor (resultado de obtenerCarrito) en una lista de Producto.
+     * Incluye imagen_path, stock y cantidad sincronizados.
+     */
+    private fun cursorToProductoList(cursor: Cursor): List<Producto> {
+        val productos = mutableListOf<Producto>()
+        if (cursor.moveToFirst()) {
+            do {
+                val id = cursor.getInt(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_ID))
+                val nombre = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_NOMBRE))
+                val descripcion = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_DESCRIPCION))
+                val precio = cursor.getDouble(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_PRECIO))
+                val imagen = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_IMAGEN_PATH)) ?: ""
+                val stock = cursor.getInt(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_STOCK))
+                val cantidad = cursor.getInt(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_CANTIDAD))
+
+                productos.add(
+                    Producto(
+                        id = id,
+                        nombre = nombre,
+                        descripcion = descripcion,
+                        precio = precio,
+                        imagen_path = imagen,
+                        stock = stock,
+                        cantidad = cantidad // ✅ sincroniza con BD
+                    )
+                )
+            } while (cursor.moveToNext())
         }
+        cursor.close()
+        return productos
     }
 
     override fun onResume() {
@@ -121,3 +179,11 @@ class CarritoFragment : Fragment() {
         cargarCarrito()
     }
 }
+
+
+
+
+
+
+
+

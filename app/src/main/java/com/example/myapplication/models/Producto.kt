@@ -6,8 +6,10 @@ data class Producto(
     val descripcion: String = "",
     val precio: Double,
     val imagen_path: String = "",
-    val stock: Int
+    val stock: Int,
+    var cantidad: Int = 1 // 🔹 Nuevo campo para sincronizar con la BD y el carrito
 ) {
+
     /**
      * Implementación personalizada de equals().
      * Dos productos se consideran iguales si tienen el mismo ID.
@@ -31,12 +33,29 @@ data class Producto(
     }
 
     /**
-     * Validaciones básicas al crear un producto
+     * Validaciones básicas al crear un producto.
      */
     init {
         require(id >= 0) { "El ID debe ser positivo" }
         require(nombre.isNotBlank()) { "El nombre no puede estar vacío" }
         require(precio >= 0) { "El precio no puede ser negativo" }
+        require(cantidad >= 0) { "La cantidad no puede ser negativa" } // 🔹 Validación adicional
+    }
+
+    /**
+     * 🔹 Método auxiliar para calcular el subtotal del producto en el carrito.
+     */
+    fun subtotal(): Double {
+        return precio * cantidad
+    }
+
+    /**
+     * 🔹 Método auxiliar para formatear el precio en pesos o dólares.
+     */
+    fun precioFormateado(): String {
+        return "$${"%.2f".format(precio)}"
     }
 }
+
+
 

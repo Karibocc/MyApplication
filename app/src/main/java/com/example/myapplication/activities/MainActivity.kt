@@ -81,7 +81,7 @@ class MainActivity : AppCompatActivity() {
             return
         }
 
-        // ✅ SOLUCIÓN DEFINITIVA: Configurar navegación UNA SOLA VEZ
+        // ✅ Configurar navegación UNA SOLA VEZ
         setupNavigation()
 
         Log.d(TAG, "✅ === MAINACTIVITY CONFIGURADO EXITOSAMENTE ===")
@@ -98,29 +98,28 @@ class MainActivity : AppCompatActivity() {
                 return
             }
 
-            // ✅ OBTENER NAVCONTROLLER CON MANEJO ESPECÍFICO DEL ERROR
+            // Obtener NavController
             try {
                 navController = navHostFragment.navController
                 Log.d(TAG, "✅ NavController obtenido exitosamente")
             } catch (e: IllegalStateException) {
                 if (e.message?.contains("SavedStateProvider") == true) {
                     Log.e(TAG, "❌ ERROR: SavedStateProvider ya registrado - Usando estrategia alternativa", e)
-                    // ✅ ESTRATEGIA ALTERNATIVA: No hacer nada, usar el NavController existente
                     return
                 } else {
                     throw e
                 }
             }
 
-            // ✅ CONFIGURAR BOTTOM NAVIGATION
+            // Configurar BottomNavigationView
             try {
                 bottomNav.setupWithNavController(navController)
-                Log.d(TAG, "✅ BottomNavigationView configurado")
+                Log.d(TAG, "✅ BottomNavigationView configurado correctamente")
             } catch (e: Exception) {
                 Log.e(TAG, "❌ ERROR configurando BottomNavigationView: ${e.message}", e)
             }
 
-            // ✅ CONFIGURAR APP BAR
+            // Configurar AppBar
             try {
                 val appBarConfiguration = AppBarConfiguration(
                     setOf(
@@ -131,9 +130,19 @@ class MainActivity : AppCompatActivity() {
                     )
                 )
                 setupActionBarWithNavController(navController, appBarConfiguration)
-                Log.d(TAG, "✅ AppBar configurada")
+                Log.d(TAG, "✅ AppBar configurada correctamente")
             } catch (e: Exception) {
                 Log.w(TAG, "⚠️ AppBar no configurada: ${e.message}")
+            }
+
+            // 🔹 Listener de cambio de destino
+            navController.addOnDestinationChangedListener { _, destination, _ ->
+                when (destination.id) {
+                    R.id.homeFragment -> Log.d(TAG, "📌 Navegando a Home")
+                    R.id.productsFragment -> Log.d(TAG, "📌 Navegando a Productos")
+                    R.id.carritoFragment -> Log.d(TAG, "📌 Navegando a Carrito")
+                    R.id.profileFragment -> Log.d(TAG, "📌 Navegando a Perfil")
+                }
             }
 
         } catch (e: Exception) {
@@ -142,11 +151,9 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    // ✅ SOLUCIÓN DEFINITIVA: onStart VACÍO - NO HACER NADA
     override fun onStart() {
         super.onStart()
-        Log.d(TAG, "📱 MainActivity onStart - NO HACER NADA para evitar recreación")
-        // ✅ ABSOLUTAMENTE NADA aquí - La navegación ya se configuró en onCreate
+        Log.d(TAG, "📱 MainActivity onStart")
     }
 
     override fun onResume() {
@@ -169,7 +176,6 @@ class MainActivity : AppCompatActivity() {
         Log.d(TAG, "📱 MainActivity onDestroy")
     }
 
-    // Los métodos restantes se mantienen igual...
     private fun createMinimalLayout() {
         try {
             Log.d(TAG, "🔄 Creando layout mínimo de emergencia...")
@@ -219,7 +225,7 @@ class MainActivity : AppCompatActivity() {
             }
 
             bottomNav.visibility = View.GONE
-            findViewById<androidx.fragment.app.FragmentContainerView>(R.id.nav_host_fragment).visibility = View.GONE
+            findViewById<androidx.fragment.app.FragmentContainerView>(R.id.nav_host_fragment)?.visibility = View.GONE
 
             Log.d(TAG, "✅ Pantalla de emergencia activada")
         } catch (e: Exception) {

@@ -8,12 +8,12 @@
     android:background="@color/white"
     tools:context=".activities.MainActivity">
 
-    <!-- ✅ CORREGIDO: FragmentContainerView con altura definida correctamente -->
+    <!-- ✅ FragmentContainerView corregido -->
     <androidx.fragment.app.FragmentContainerView
         android:id="@+id/nav_host_fragment"
         android:name="androidx.navigation.fragment.NavHostFragment"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
+        android:layout_height="match_parent"
         android:layout_above="@id/bottom_nav"
         android:layout_alignParentTop="true"
         android:background="@color/white"
@@ -21,7 +21,7 @@
         app:navGraph="@navigation/nav_graph"
         tools:ignore="FragmentTag" />
 
-    <!-- BottomNavigationView con colores seguros -->
+    <!-- BottomNavigationView -->
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottom_nav"
         android:layout_width="match_parent"
@@ -75,7 +75,5 @@
             android:textColor="@color/white"
             android:textSize="16sp"
             android:textStyle="bold" />
-
     </LinearLayout>
-
 </RelativeLayout>

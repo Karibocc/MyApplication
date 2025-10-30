@@ -1,19 +1,19 @@
 package com.example.myapplication.database;
 
 import android.content.Context;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.content.ContentValues;
-import android.database.Cursor;
 import android.util.Log;
-import java.util.ArrayList;
-import java.util.List;
+
+import java.security.MessageDigest;
 
 public class DatabaseHelper extends SQLiteOpenHelper {
 
-    // CONSTANTES DE LA BASE DE DATOS
+    // ===================== CONSTANTES DE BASE DE DATOS =====================
     private static final String DATABASE_NAME = "miapplication.db";
-    private static final int DATABASE_VERSION = 3;
+    private static final int DATABASE_VERSION = 4;
 
     // TABLA PRODUCTOS
     public static final String TABLE_PRODUCTOS = "productos";
@@ -23,6 +23,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public static final String COLUMN_PRECIO = "precio";
     public static final String COLUMN_IMAGEN_PATH = "imagen_path";
     public static final String COLUMN_STOCK = "stock";
+    public static final String COLUMN_CANTIDAD = "cantidad";
 
     // TABLA USUARIOS
     public static final String TABLE_USUARIOS = "usuarios";
@@ -34,9 +35,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     // TABLA CARRITO
     public static final String TABLE_CARRITO = "carrito";
     public static final String COLUMN_CARRITO_ID = "id_carrito";
-    public static final String COLUMN_CANTIDAD = "cantidad";
 
-    // SENTENCIAS SQL
+    // ===================== CREACIÓN DE TABLAS =====================
     private static final String TABLE_CREATE_PRODUCTOS =
             "CREATE TABLE " + TABLE_PRODUCTOS + " (" +
                     COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
@@ -44,7 +44,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     COLUMN_DESCRIPCION + " TEXT, " +
                     COLUMN_PRECIO + " REAL NOT NULL, " +
                     COLUMN_IMAGEN_PATH + " TEXT, " +
-                    COLUMN_STOCK + " INTEGER DEFAULT 0);";
+                    COLUMN_STOCK + " INTEGER DEFAULT 0, " +
+                    COLUMN_CANTIDAD + " INTEGER DEFAULT 1);";
 
     private static final String TABLE_CREATE_USUARIOS =
             "CREATE TABLE " + TABLE_USUARIOS + " (" +
@@ -61,10 +62,12 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     "FOREIGN KEY(" + COLUMN_ID + ") REFERENCES " +
                     TABLE_PRODUCTOS + "(" + COLUMN_ID + "));";
 
+    // ===================== CONSTRUCTOR =====================
     public DatabaseHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
 
+    // ===================== CREACIÓN Y ACTUALIZACIÓN =====================
     @Override
     public void onCreate(SQLiteDatabase db) {
         db.execSQL(TABLE_CREATE_PRODUCTOS);
@@ -81,9 +84,28 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             db.execSQL("ALTER TABLE " + TABLE_PRODUCTOS + " ADD COLUMN " + COLUMN_STOCK + " INTEGER DEFAULT 0;");
             db.execSQL(TABLE_CREATE_CARRITO);
         }
+        if (oldVersion < 4) {
+            db.execSQL("ALTER TABLE " + TABLE_PRODUCTOS + " ADD COLUMN " + COLUMN_CANTIDAD + " INTEGER DEFAULT 1;");
+        }
     }
-    // =================== OPERACIONES DE PRODUCTOS ===================
 
+    // ===================== MÉTODO DE HASH =====================
+    private String hashPassword(String password) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] bytes = digest.digest(password.getBytes());
+            StringBuilder sb = new StringBuilder();
+            for (byte b : bytes) {
+                sb.append(String.format("%02x", b));
+            }
+            return sb.toString();
+        } catch (Exception e) {
+            Log.e("DatabaseHelper", "Error generando hash: " + e.getMessage());
+            return password;
+        }
+    }
+
+    // ===================== PRODUCTOS =====================
     public long insertarProducto(String nombre, String descripcion, double precio, String imagenPath, int stock) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
@@ -92,6 +114,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         values.put(COLUMN_PRECIO, precio);
         values.put(COLUMN_IMAGEN_PATH, imagenPath);
         values.put(COLUMN_STOCK, stock);
+        values.put(COLUMN_CANTIDAD, 1);
         return db.insert(TABLE_PRODUCTOS, null, values);
     }
 
@@ -114,122 +137,107 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         values.put(COLUMN_PRECIO, precio);
         values.put(COLUMN_IMAGEN_PATH, imagenPath);
         values.put(COLUMN_STOCK, stock);
-        return db.update(TABLE_PRODUCTOS, values, COLUMN_ID + "=?",
-                new String[]{String.valueOf(id)});
+        return db.update(TABLE_PRODUCTOS, values, COLUMN_ID + "=?", new String[]{String.valueOf(id)});
     }
 
     public int eliminarProducto(int id) {
         SQLiteDatabase db = this.getWritableDatabase();
-        return db.delete(TABLE_PRODUCTOS, COLUMN_ID + "=?",
-                new String[]{String.valueOf(id)});
+        return db.delete(TABLE_PRODUCTOS, COLUMN_ID + "=?", new String[]{String.valueOf(id)});
     }
 
-    public Cursor buscarProductos(String query) {
+    public int obtenerStockProducto(int productoId) {
         SQLiteDatabase db = this.getReadableDatabase();
-        return db.query(TABLE_PRODUCTOS,
-                null,
-                COLUMN_NOMBRE + " LIKE ? OR " + COLUMN_DESCRIPCION + " LIKE ?",
-                new String[]{"%" + query + "%", "%" + query + "%"},
-                null, null,
-                COLUMN_NOMBRE + " ASC");
+        Cursor cursor = db.query(TABLE_PRODUCTOS, new String[]{COLUMN_STOCK},
+                COLUMN_ID + " = ?", new String[]{String.valueOf(productoId)},
+                null, null, null);
+        int stock = 0;
+        if (cursor.moveToFirst()) stock = cursor.getInt(0);
+        cursor.close();
+        return stock;
     }
 
-    // =================== OPERACIONES DE USUARIOS ===================
+    private void actualizarStockProducto(int productoId, int nuevoStock) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(COLUMN_STOCK, nuevoStock);
+        db.update(TABLE_PRODUCTOS, values, COLUMN_ID + " = ?", new String[]{String.valueOf(productoId)});
+    }
 
+    // ===================== USUARIOS =====================
     public long insertarUsuario(String username, String password, String rol) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
-
-        // ✅ CORRECCIÓN CRUCIAL: Normalizar username a minúsculas
         String usernameNormalizado = username.toLowerCase().trim();
-        String passwordLimpia = password.trim();
-
-        Log.d("DatabaseHelper", "🔐 Insertando usuario: " + usernameNormalizado + ", Rol: " + rol);
-
+        String passwordHasheada = hashPassword(password.trim());
         values.put(COLUMN_USERNAME, usernameNormalizado);
-        values.put(COLUMN_PASSWORD, passwordLimpia);
+        values.put(COLUMN_PASSWORD, passwordHasheada);
         values.put(COLUMN_ROL, rol);
         return db.insert(TABLE_USUARIOS, null, values);
     }
 
-    public boolean usuarioExiste(String username) {
-        SQLiteDatabase db = this.getReadableDatabase();
-
-        // ✅ CORRECCIÓN CRUCIAL: Normalizar username a minúsculas
-        String usernameNormalizado = username.toLowerCase().trim();
-
-        Log.d("DatabaseHelper", "🔍 Verificando si usuario existe: " + usernameNormalizado);
-
-        Cursor cursor = db.query(TABLE_USUARIOS,
-                new String[]{COLUMN_USERNAME},
-                COLUMN_USERNAME + " = ?",
-                new String[]{usernameNormalizado},
-                null, null, null);
-        boolean existe = cursor.moveToFirst();
-
-        Log.d("DatabaseHelper", "📊 Usuario existe: " + existe);
-        cursor.close();
-        return existe;
-    }
-
     public boolean validarUsuario(String username, String password) {
         SQLiteDatabase db = this.getReadableDatabase();
-
-        // ✅ CORRECCIÓN CRUCIAL: Normalizar username a minúsculas
         String usernameNormalizado = username.toLowerCase().trim();
-        String passwordLimpia = password.trim();
-
-        Log.d("DatabaseHelper", "🔑 Validando usuario: " + usernameNormalizado);
-
-        Cursor cursor = db.query(TABLE_USUARIOS,
-                null,
-                COLUMN_USERNAME + " = ? AND " + COLUMN_PASSWORD + " = ?",
-                new String[]{usernameNormalizado, passwordLimpia},
+        String passwordHasheada = hashPassword(password.trim());
+        Cursor cursor = db.query(TABLE_USUARIOS, new String[]{COLUMN_PASSWORD},
+                COLUMN_USERNAME + " = ?", new String[]{usernameNormalizado},
                 null, null, null);
-        boolean valido = cursor.moveToFirst();
-
-        Log.d("DatabaseHelper", "✅ Validación exitosa: " + valido);
+        boolean valido = false;
+        if (cursor.moveToFirst()) {
+            String storedPassword = cursor.getString(0);
+            valido = storedPassword.equals(passwordHasheada);
+        }
         cursor.close();
         return valido;
     }
 
     public String obtenerRol(String username) {
         SQLiteDatabase db = this.getReadableDatabase();
-
-        // ✅ CORRECCIÓN CRUCIAL: Normalizar username a minúsculas
-        String usernameNormalizado = username.toLowerCase().trim();
-
-        Cursor cursor = db.query(TABLE_USUARIOS,
-                new String[]{COLUMN_ROL},
-                COLUMN_USERNAME + " = ?",
-                new String[]{usernameNormalizado},
+        Cursor cursor = db.query(TABLE_USUARIOS, new String[]{COLUMN_ROL},
+                COLUMN_USERNAME + " = ?", new String[]{username.toLowerCase().trim()},
                 null, null, null);
         String rol = "";
-        if (cursor.moveToFirst()) {
-            rol = cursor.getString(0);
-        }
+        if (cursor.moveToFirst()) rol = cursor.getString(0);
         cursor.close();
         return rol;
     }
 
+    // ===================== MÉTODOS NUEVOS PARA USUARIO =====================
+
+    /**
+     * Verifica si un usuario ya existe
+     */
+    public boolean usuarioExiste(String username) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.query(
+                TABLE_USUARIOS,
+                new String[]{COLUMN_USERNAME},
+                COLUMN_USERNAME + " = ?",
+                new String[]{username.toLowerCase().trim()},
+                null, null, null
+        );
+        boolean existe = cursor.moveToFirst();
+        cursor.close();
+        return existe;
+    }
+
+    /**
+     * Obtiene un usuario por su username
+     */
     public Cursor obtenerUsuarioPorNombre(String username) {
         SQLiteDatabase db = this.getReadableDatabase();
-
-        // ✅ CORRECCIÓN CRUCIAL: Normalizar username a minúsculas
-        String usernameNormalizado = username.toLowerCase().trim();
-
-        Log.d("DatabaseHelper", "👤 Obteniendo usuario por nombre: " + usernameNormalizado);
-
         return db.query(
                 TABLE_USUARIOS,
                 new String[]{COLUMN_USERNAME, COLUMN_PASSWORD, COLUMN_ROL},
                 COLUMN_USERNAME + " = ?",
-                new String[]{usernameNormalizado},
+                new String[]{username.toLowerCase().trim()},
                 null, null, null
         );
     }
 
-    // ✅ NUEVO MÉTODO AGREGADO: Obtener todos los usuarios
+    /**
+     * Obtiene todos los usuarios
+     */
     public Cursor obtenerTodosLosUsuarios() {
         SQLiteDatabase db = this.getReadableDatabase();
         return db.query(
@@ -240,43 +248,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         );
     }
 
-    // ✅ NUEVO MÉTODO AGREGADO: Obtener todos los usuarios en formato List para migración
-    public List<Usuario> obtenerTodosLosUsuariosParaMigracion() {
-        SQLiteDatabase db = this.getReadableDatabase();
-        List<Usuario> usuarios = new ArrayList<>();
-        Cursor cursor = null;
-
-        try {
-            cursor = db.query(
-                    TABLE_USUARIOS,
-                    new String[]{COLUMN_USERNAME, COLUMN_PASSWORD, COLUMN_ROL},
-                    null, null, null, null,
-                    COLUMN_USERNAME + " ASC"
-            );
-
-            while (cursor.moveToNext()) {
-                String username = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_USERNAME));
-                String password = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_PASSWORD));
-                String rol = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_ROL));
-                usuarios.add(new Usuario(username, password, rol));
-            }
-
-            Log.d("DatabaseHelper", "📊 Usuarios encontrados para migración: " + usuarios.size());
-        } catch (Exception e) {
-            Log.e("DatabaseHelper", "❌ Error obteniendo usuarios para migración", e);
-        } finally {
-            if (cursor != null) {
-                cursor.close();
-            }
-        }
-
-        return usuarios;
-    }
-
-    // OPERACIONES DEL CARRITO
+    // ===================== CARRITO =====================
     public long agregarAlCarrito(int productoId, int cantidad) {
         SQLiteDatabase db = this.getWritableDatabase();
-
         int stockDisponible = obtenerStockProducto(productoId);
         if (stockDisponible < cantidad) return -1;
 
@@ -291,8 +265,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             int cantidadActual = cursor.getInt(1);
             ContentValues values = new ContentValues();
             values.put(COLUMN_CANTIDAD, cantidadActual + cantidad);
-            result = db.update(TABLE_CARRITO, values,
-                    COLUMN_ID + " = ?", new String[]{String.valueOf(productoId)});
+            result = db.update(TABLE_CARRITO, values, COLUMN_ID + " = ?", new String[]{String.valueOf(productoId)});
         } else {
             ContentValues values = new ContentValues();
             values.put(COLUMN_ID, productoId);
@@ -304,130 +277,62 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         if (result > 0) {
             actualizarStockProducto(productoId, stockDisponible - cantidad);
         }
-
         return result;
     }
 
     public int eliminarDelCarrito(int productoId) {
         SQLiteDatabase db = this.getWritableDatabase();
-
         int cantidad = obtenerCantidadEnCarrito(productoId);
         int stockActual = obtenerStockProducto(productoId);
-
-        int result = db.delete(TABLE_CARRITO,
-                COLUMN_ID + " = ?", new String[]{String.valueOf(productoId)});
-
+        int result = db.delete(TABLE_CARRITO, COLUMN_ID + " = ?", new String[]{String.valueOf(productoId)});
         if (result > 0) {
             actualizarStockProducto(productoId, stockActual + cantidad);
         }
-
         return result;
     }
 
-    public int actualizarCantidadEnCarrito(int productoId, int nuevaCantidad) {
-        SQLiteDatabase db = this.getWritableDatabase();
-
-        int stockDisponible = obtenerStockProducto(productoId);
-        int cantidadActual = obtenerCantidadEnCarrito(productoId);
-        int diferencia = nuevaCantidad - cantidadActual;
-
-        if (stockDisponible < diferencia) return -1;
-
-        ContentValues values = new ContentValues();
-        values.put(COLUMN_CANTIDAD, nuevaCantidad);
-
-        int result = db.update(TABLE_CARRITO, values,
-                COLUMN_ID + " = ?", new String[]{String.valueOf(productoId)});
-
-        if (result > 0) {
-            actualizarStockProducto(productoId, stockDisponible - diferencia);
-        }
-
-        return result;
+    private int obtenerCantidadEnCarrito(int productoId) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.query(TABLE_CARRITO, new String[]{COLUMN_CANTIDAD},
+                COLUMN_ID + " = ?", new String[]{String.valueOf(productoId)},
+                null, null, null);
+        int cantidad = 0;
+        if (cursor.moveToFirst()) cantidad = cursor.getInt(0);
+        cursor.close();
+        return cantidad;
     }
 
     public Cursor obtenerCarrito() {
         SQLiteDatabase db = this.getReadableDatabase();
-        String query = "SELECT p." + COLUMN_ID + ", p." + COLUMN_NOMBRE +
-                ", p." + COLUMN_DESCRIPCION + ", p." + COLUMN_PRECIO +
-                ", p." + COLUMN_IMAGEN_PATH + ", c." + COLUMN_CANTIDAD +
-                " FROM " + TABLE_PRODUCTOS + " p INNER JOIN " +
-                TABLE_CARRITO + " c ON p." + COLUMN_ID + " = c." + COLUMN_ID;
+        String query = "SELECT p." + COLUMN_ID + ", p." + COLUMN_NOMBRE + ", p." + COLUMN_DESCRIPCION + ", " +
+                "p." + COLUMN_PRECIO + ", p." + COLUMN_IMAGEN_PATH + ", p." + COLUMN_STOCK + ", c." + COLUMN_CANTIDAD +
+                " FROM " + TABLE_CARRITO + " c " +
+                "INNER JOIN " + TABLE_PRODUCTOS + " p ON c." + COLUMN_ID + " = p." + COLUMN_ID + ";";
         return db.rawQuery(query, null);
+    }
+
+    public int actualizarCantidadEnCarrito(int productoId, int nuevaCantidad) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(COLUMN_CANTIDAD, nuevaCantidad);
+        return db.update(TABLE_CARRITO, values, COLUMN_ID + " = ?", new String[]{String.valueOf(productoId)});
     }
 
     public double calcularTotalCarrito() {
         SQLiteDatabase db = this.getReadableDatabase();
-        String query = "SELECT SUM(p." + COLUMN_PRECIO + " * c." + COLUMN_CANTIDAD + ") as total " +
-                "FROM " + TABLE_PRODUCTOS + " p INNER JOIN " +
-                TABLE_CARRITO + " c ON p." + COLUMN_ID + " = c." + COLUMN_ID;
-
+        String query = "SELECT SUM(p." + COLUMN_PRECIO + " * c." + COLUMN_CANTIDAD + ") AS total " +
+                "FROM " + TABLE_CARRITO + " c " +
+                "INNER JOIN " + TABLE_PRODUCTOS + " p ON c." + COLUMN_ID + " = p." + COLUMN_ID + ";";
         Cursor cursor = db.rawQuery(query, null);
         double total = 0;
         if (cursor.moveToFirst()) {
-            total = cursor.getDouble(0);
+            total = cursor.getDouble(cursor.getColumnIndexOrThrow("total"));
         }
         cursor.close();
         return total;
     }
 
-    public int limpiarCarrito() {
-        SQLiteDatabase db = this.getWritableDatabase();
-
-        Cursor cursor = db.rawQuery("SELECT " + COLUMN_ID + ", " + COLUMN_CANTIDAD +
-                " FROM " + TABLE_CARRITO, null);
-
-        while (cursor.moveToNext()) {
-            int productoId = cursor.getInt(0);
-            int cantidad = cursor.getInt(1);
-            int stockActual = obtenerStockProducto(productoId);
-            actualizarStockProducto(productoId, stockActual + cantidad);
-        }
-        cursor.close();
-
-        return db.delete(TABLE_CARRITO, null, null);
-    }
-
-    // MÉTODOS AUXILIARES
-    public int obtenerStockProducto(int productoId) {
-        SQLiteDatabase db = this.getReadableDatabase();
-        Cursor cursor = db.query(TABLE_PRODUCTOS,
-                new String[]{COLUMN_STOCK},
-                COLUMN_ID + " = ?",
-                new String[]{String.valueOf(productoId)},
-                null, null, null);
-        int stock = 0;
-        if (cursor.moveToFirst()) {
-            stock = cursor.getInt(0);
-        }
-        cursor.close();
-        return stock;
-    }
-
-    private void actualizarStockProducto(int productoId, int nuevoStock) {
-        SQLiteDatabase db = this.getWritableDatabase();
-        ContentValues values = new ContentValues();
-        values.put(COLUMN_STOCK, nuevoStock);
-        db.update(TABLE_PRODUCTOS, values, COLUMN_ID + " = ?",
-                new String[]{String.valueOf(productoId)});
-    }
-
-    private int obtenerCantidadEnCarrito(int productoId) {
-        SQLiteDatabase db = this.getReadableDatabase();
-        Cursor cursor = db.query(TABLE_CARRITO,
-                new String[]{COLUMN_CANTIDAD},
-                COLUMN_ID + " = ?",
-                new String[]{String.valueOf(productoId)},
-                null, null, null);
-        int cantidad = 0;
-        if (cursor.moveToFirst()) {
-            cantidad = cursor.getInt(0);
-        }
-        cursor.close();
-        return cantidad;
-    }
-
-    // ✅ NUEVA CLASE INTERNA: Para representar usuarios en la migración
+    // Clase interna Usuario (compatibilidad)
     public static class Usuario {
         public String username;
         public String password;
@@ -440,3 +345,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
     }
 }
+
+
+
+
+

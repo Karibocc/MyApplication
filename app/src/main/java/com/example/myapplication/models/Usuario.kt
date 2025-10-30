@@ -2,6 +2,7 @@ package com.example.myapplication.models
 
 import android.content.Context
 import android.database.Cursor
+import android.util.Log
 import android.util.Patterns
 import android.widget.Toast
 import com.example.myapplication.database.DatabaseHelper
@@ -9,6 +10,7 @@ import com.example.myapplication.activities.AdminActivity
 import com.example.myapplication.activities.MainActivity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.security.MessageDigest
 
 data class Usuario(
     val username: String,
@@ -22,15 +24,27 @@ data class Usuario(
 
     companion object {
 
-        // ✅ Función mejorada para verificar email
+        // ✅ Verificación de email
         fun esEmailValido(email: String): Boolean {
             return Patterns.EMAIL_ADDRESS.matcher(email).matches()
         }
 
+        // ✅ Hashear contraseñas con SHA-256
+        private fun hashPassword(password: String): String {
+            return try {
+                val bytes = MessageDigest.getInstance("SHA-256").digest(password.toByteArray())
+                bytes.joinToString("") { "%02x".format(it) }
+            } catch (e: Exception) {
+                Log.e("Usuario", "Error al generar hash: ${e.message}")
+                password
+            }
+        }
+
+        // ===================== REGISTRAR USUARIO =====================
         fun registrarUsuario(context: Context, nuevoUsuario: Usuario): Boolean {
             val dbHelper = DatabaseHelper(context)
 
-            // Verificar si ya existe
+            // Verificar si el usuario ya existe
             if (usuarioExiste(context, nuevoUsuario.username)) {
                 Toast.makeText(context, "El usuario ya existe", Toast.LENGTH_SHORT).show()
                 return false
@@ -51,83 +65,78 @@ data class Usuario(
             }
         }
 
+        // ===================== VALIDAR LOGIN =====================
         fun validarLogin(context: Context, username: String, password: String): Boolean {
             val dbHelper = DatabaseHelper(context)
             return dbHelper.validarUsuario(username, password)
         }
 
-        // ✅ Versión mejorada con manejo seguro de recursos
+        // ===================== VERIFICAR SI USUARIO EXISTE =====================
+        fun usuarioExiste(context: Context, username: String): Boolean {
+            val dbHelper = DatabaseHelper(context)
+            return dbHelper.usuarioExiste(username)
+        }
+
+        // ===================== OBTENER USUARIO POR NOMBRE =====================
         fun obtenerUsuarioPorNombre(context: Context, username: String): Usuario? {
             val dbHelper = DatabaseHelper(context)
             var cursor: Cursor? = null
-
             return try {
                 cursor = dbHelper.obtenerUsuarioPorNombre(username)
-
                 if (cursor.moveToFirst()) {
+                    val dbUsername = cursor.getString(cursor.getColumnIndexOrThrow("username"))
                     val password = cursor.getString(cursor.getColumnIndexOrThrow("password"))
                     val rol = cursor.getString(cursor.getColumnIndexOrThrow("rol"))
-                    Usuario(username, password, rol, rol.equals("admin", ignoreCase = true))
-                } else {
-                    null
-                }
+                    Usuario(dbUsername, password, rol, rol.equals("admin", ignoreCase = true))
+                } else null
             } catch (e: Exception) {
-                android.util.Log.e("Usuario", "Error obteniendo usuario: ${e.message}")
+                Log.e("Usuario", "Error obteniendo usuario: ${e.message}")
                 null
             } finally {
                 cursor?.close()
-                // No cerramos dbHelper aquí para no interferir con la lógica existente
             }
         }
 
-        // ✅ Versión suspend para corrutinas (nueva función)
         suspend fun obtenerUsuarioPorNombreSuspend(context: Context, username: String): Usuario? {
             return withContext(Dispatchers.IO) {
                 obtenerUsuarioPorNombre(context, username)
             }
         }
 
-        fun usuarioExiste(context: Context, username: String): Boolean {
-            return obtenerUsuarioPorNombre(context, username) != null
-        }
-
+        // ===================== OBTENER ROL =====================
         fun obtenerRol(context: Context, username: String): String {
             val usuario = obtenerUsuarioPorNombre(context, username)
             return usuario?.rol ?: "Desconocido"
         }
 
-        // ✅ Nueva función agregada: obtiene el nombre de la actividad según el rol
+        // ===================== OBTENER ACTIVIDAD SEGÚN ROL =====================
         fun obtenerActividadSegunRol(context: Context, username: String): Class<*> {
             val usuario = obtenerUsuarioPorNombre(context, username)
             return when (usuario?.rol?.lowercase()) {
                 "admin" -> AdminActivity::class.java
                 "cliente" -> MainActivity::class.java
-                else -> MainActivity::class.java // fallback seguro
+                else -> MainActivity::class.java
             }
         }
 
-        // ✅ Nueva función: obtener todos los usuarios (útil para admin)
+        // ===================== OBTENER TODOS LOS USUARIOS =====================
         fun obtenerTodosLosUsuarios(context: Context): List<Usuario> {
             val dbHelper = DatabaseHelper(context)
             val usuarios = mutableListOf<Usuario>()
             var cursor: Cursor? = null
-
             try {
-                // Asumiendo que tienes este método en DatabaseHelper
                 cursor = dbHelper.obtenerTodosLosUsuarios()
-                while (cursor != null && cursor.moveToNext()) {
+                while (cursor.moveToNext()) {
                     val username = cursor.getString(cursor.getColumnIndexOrThrow("username"))
                     val password = cursor.getString(cursor.getColumnIndexOrThrow("password"))
                     val rol = cursor.getString(cursor.getColumnIndexOrThrow("rol"))
-                    usuarios.add(Usuario(username, password, rol))
+                    usuarios.add(Usuario(username, password, rol, rol.equals("admin", true)))
                 }
             } catch (e: Exception) {
-                android.util.Log.e("Usuario", "Error obteniendo usuarios: ${e.message}")
+                Log.e("Usuario", "Error obteniendo usuarios: ${e.message}")
             } finally {
                 cursor?.close()
-                // No cerramos dbHelper para mantener compatibilidad
             }
-
             return usuarios
         }
     }

@@ -12,7 +12,7 @@ import com.example.myapplication.R
 import com.example.myapplication.models.Producto
 
 class CarritoAdapter(
-    private var productos: List<Producto>,
+    private var productos: MutableList<Producto>,
     private val onDeleteClick: (Producto) -> Unit,
     private val onQuantityChange: (Producto, Int) -> Unit
 ) : RecyclerView.Adapter<CarritoAdapter.ViewHolder>() {
@@ -29,24 +29,40 @@ class CarritoAdapter(
         fun bind(producto: Producto) {
             tvName.text = producto.nombre
             tvPrice.text = "$${"%.2f".format(producto.precio)}"
-            tvQuantity.text = "1" // Deberías obtener la cantidad real del carrito
+
+            // Si tu modelo no tiene campo cantidad, usamos una cantidad base 1
+            val cantidadActual = producto.javaClass.getDeclaredFields()
+                .find { it.name == "cantidad" }
+                ?.let {
+                    it.isAccessible = true
+                    (it.get(producto) as? Int) ?: 1
+                } ?: 1
+
+            tvQuantity.text = cantidadActual.toString()
 
             Glide.with(itemView.context)
                 .load(producto.imagen_path)
                 .placeholder(R.drawable.ic_image_placeholder)
                 .into(ivImage)
 
+            // Botón eliminar producto
             btnDelete.setOnClickListener { onDeleteClick(producto) }
 
+            // Botón restar cantidad
             btnMinus.setOnClickListener {
-                val newQuantity = tvQuantity.text.toString().toInt() - 1
-                if (newQuantity > 0) {
+                val currentQuantity = tvQuantity.text.toString().toIntOrNull() ?: 1
+                if (currentQuantity > 1) {
+                    val newQuantity = currentQuantity - 1
+                    tvQuantity.text = newQuantity.toString()
                     onQuantityChange(producto, newQuantity)
                 }
             }
 
+            // Botón aumentar cantidad
             btnPlus.setOnClickListener {
-                val newQuantity = tvQuantity.text.toString().toInt() + 1
+                val currentQuantity = tvQuantity.text.toString().toIntOrNull() ?: 1
+                val newQuantity = currentQuantity + 1
+                tvQuantity.text = newQuantity.toString()
                 onQuantityChange(producto, newQuantity)
             }
         }
@@ -65,7 +81,8 @@ class CarritoAdapter(
     override fun getItemCount(): Int = productos.size
 
     fun updateProductos(newProductos: List<Producto>) {
-        productos = newProductos
+        productos.clear()
+        productos.addAll(newProductos)
         notifyDataSetChanged()
     }
 }

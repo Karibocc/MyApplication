@@ -20,8 +20,8 @@
             android:layout_width="64dp"
             android:layout_height="64dp"
             android:scaleType="centerCrop"
-            android:contentDescription="Imagen del producto"
-            tools:src="@drawable/ic_image_placeholder"/>
+            android:contentDescription="@string/product_image"
+            tools:src="@drawable/ic_image_placeholder" />
 
         <TextView
             android:id="@+id/tvProductName"
@@ -30,7 +30,7 @@
             android:layout_toEndOf="@id/ivProductImage"
             android:layout_marginStart="12dp"
             android:textSize="16sp"
-            tools:text="Nombre del producto"/>
+            tools:text="Nombre del producto" />
 
         <TextView
             android:id="@+id/tvProductPrice"
@@ -41,7 +41,7 @@
             android:layout_marginStart="12dp"
             android:textSize="14sp"
             android:textColor="@color/colorPrimary"
-            tools:text="$99.99"/>
+            tools:text="$99.99" />
 
         <LinearLayout
             android:layout_width="wrap_content"
@@ -58,14 +58,14 @@
                 android:src="@drawable/ic_remove"
                 android:contentDescription="@string/reducir_cantidad"
                 android:background="?attr/selectableItemBackgroundBorderless"
-                android:padding="12dp"/>
+                android:padding="12dp" />
 
             <TextView
                 android:id="@+id/tvQuantity"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="8dp"
-                android:text="Uno"
+                android:text="1"
                 android:textColor="@android:color/black"
                 android:textSize="16sp" />
 
@@ -76,7 +76,7 @@
                 android:src="@drawable/ic_add"
                 android:contentDescription="@string/aumentar_cantidad"
                 android:background="?attr/selectableItemBackgroundBorderless"
-                android:padding="12dp"/>
+                android:padding="12dp" />
         </LinearLayout>
 
         <ImageButton
@@ -88,6 +88,7 @@
             android:src="@drawable/ic_delete"
             android:contentDescription="@string/eliminar_producto"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:padding="12dp"/>
+            android:padding="12dp" />
     </RelativeLayout>
 </androidx.cardview.widget.CardView>
+
