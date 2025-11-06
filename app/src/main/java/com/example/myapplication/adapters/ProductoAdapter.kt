@@ -70,4 +70,55 @@ class ProductoAdapter(
         productos = newProductos
         notifyDataSetChanged()
     }
+
+    /**
+     * 🔹 NUEVO: Método para obtener un producto por su posición
+     */
+    fun getProductoAt(position: Int): Producto? {
+        return if (position in 0 until productos.size) {
+            productos[position]
+        } else {
+            null
+        }
+    }
+
+    /**
+     * 🔹 NUEVO: Método para actualizar un producto específico
+     */
+    fun actualizarProducto(productoActualizado: Producto) {
+        val nuevaLista = productos.toMutableList()
+        val index = nuevaLista.indexOfFirst { it.id == productoActualizado.id }
+        if (index != -1) {
+            nuevaLista[index] = productoActualizado
+            productos = nuevaLista
+            notifyItemChanged(index)
+        }
+    }
+
+    /**
+     * 🔹 NUEVO: Método para eliminar un producto específico
+     */
+    fun eliminarProducto(productoId: Int) {
+        val nuevaLista = productos.toMutableList()
+        val index = nuevaLista.indexOfFirst { it.id == productoId }
+        if (index != -1) {
+            nuevaLista.removeAt(index)
+            productos = nuevaLista
+            notifyItemRemoved(index)
+        }
+    }
+
+    /**
+     * 🔹 NUEVO: Método para filtrar productos
+     */
+    fun filtrarProductos(query: String): List<Producto> {
+        return if (query.isBlank()) {
+            productos
+        } else {
+            productos.filter {
+                it.nombre.contains(query, ignoreCase = true) ||
+                        it.descripcion.contains(query, ignoreCase = true)
+            }
+        }
+    }
 }

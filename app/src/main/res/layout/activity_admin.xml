@@ -39,7 +39,8 @@
         android:backgroundTint="@color/colorPrimary"
         android:textColor="@color/white"
         android:textSize="16sp"
-        android:layout_marginBottom="16dp" />
+        android:layout_marginBottom="16dp"
+        android:textAllCaps="false" />
 
     <Button
         android:id="@+id/btnGestionarUsuarios"
@@ -49,7 +50,8 @@
         android:backgroundTint="@color/colorPrimary"
         android:textColor="@color/white"
         android:textSize="16sp"
-        android:layout_marginBottom="16dp" />
+        android:layout_marginBottom="16dp"
+        android:textAllCaps="false" />
 
     <Button
         android:id="@+id/btnVerReportes"
@@ -59,7 +61,8 @@
         android:backgroundTint="@color/colorSecondary"
         android:textColor="@color/black"
         android:textSize="16sp"
-        android:layout_marginBottom="32dp" />
+        android:layout_marginBottom="32dp"
+        android:textAllCaps="false" />
 
     <!-- Cerrar sesión -->
     <Button
@@ -67,9 +70,10 @@
         android:text="Cerrar Sesión"
         android:layout_width="match_parent"
         android:layout_height="48dp"
-        android:backgroundTint="@android:color/white"
+        android:backgroundTint="@color/white"
         android:textColor="@color/colorPrimary"
         android:textSize="14sp"
-        android:textStyle="bold" />
+        android:textStyle="bold"
+        android:textAllCaps="false" />
 
 </LinearLayout>

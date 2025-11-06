@@ -1,20 +1,20 @@
 package com.example.myapplication.models
 
 import android.content.Context
-import android.database.Cursor
 import android.util.Log
 import android.util.Patterns
 import android.widget.Toast
-import com.example.myapplication.database.DatabaseHelper
 import com.example.myapplication.activities.AdminActivity
 import com.example.myapplication.activities.MainActivity
+import com.example.myapplication.database.DatabaseHelper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import java.security.MessageDigest
 
 data class Usuario(
+    val id: Int = 0,
     val username: String,
     val password: String,
+    val salt: String = "",
     val rol: String,
     val isAdmin: Boolean = false
 ) {
@@ -22,31 +22,68 @@ data class Usuario(
         return username.isNotBlank() && password.isNotBlank()
     }
 
+    // ===================== GUARDAR USUARIO =====================
+    fun guardar(context: Context): Boolean {
+        return registrarUsuario(context, this)
+    }
+
     companion object {
 
-        // ✅ Verificación de email
+        // ===================== VALIDAR EMAIL =====================
         fun esEmailValido(email: String): Boolean {
             return Patterns.EMAIL_ADDRESS.matcher(email).matches()
-        }
-
-        // ✅ Hashear contraseñas con SHA-256
-        private fun hashPassword(password: String): String {
-            return try {
-                val bytes = MessageDigest.getInstance("SHA-256").digest(password.toByteArray())
-                bytes.joinToString("") { "%02x".format(it) }
-            } catch (e: Exception) {
-                Log.e("Usuario", "Error al generar hash: ${e.message}")
-                password
-            }
         }
 
         // ===================== REGISTRAR USUARIO =====================
         fun registrarUsuario(context: Context, nuevoUsuario: Usuario): Boolean {
             val dbHelper = DatabaseHelper(context)
 
-            // Verificar si el usuario ya existe
+            // 🔥 AGREGAR LOGS PARA DEBUG
+            Log.d("REGISTRO_USUARIO", "=== INICIANDO REGISTRO EN BD ===")
+            Log.d("REGISTRO_USUARIO", "Usuario: ${nuevoUsuario.username}")
+            Log.d("REGISTRO_USUARIO", "Rol: ${nuevoUsuario.rol}")
+
             if (usuarioExiste(context, nuevoUsuario.username)) {
+                Log.e("REGISTRO_USUARIO", "Usuario ya existe en BD")
                 Toast.makeText(context, "El usuario ya existe", Toast.LENGTH_SHORT).show()
+                return false
+            }
+
+            Log.d("REGISTRO_USUARIO", "Usuario no existe, procediendo a insertar")
+            val resultado = dbHelper.insertarUsuario(
+                nuevoUsuario.username,
+                nuevoUsuario.password,
+                nuevoUsuario.rol
+            )
+
+            Log.d("REGISTRO_USUARIO", "Resultado de inserción en BD: $resultado")
+
+            return if (resultado != -1L) {
+                Log.i("REGISTRO_USUARIO", "✅ Inserción exitosa en BD, ID: $resultado")
+                Toast.makeText(context, "Usuario registrado con éxito", Toast.LENGTH_SHORT).show()
+                true
+            } else {
+                Log.e("REGISTRO_USUARIO", "❌ Error en inserción BD, resultado: $resultado")
+                Toast.makeText(context, "Error al registrar usuario", Toast.LENGTH_SHORT).show()
+                false
+            }
+        }
+
+        // ===================== REGISTRAR USUARIO DESDE STRINGS (NUEVA FUNCIÓN) =====================
+        fun registrarUsuarioDesdeStrings(context: Context, username: String, password: String, rol: String): Boolean {
+            val nuevoUsuario = Usuario(
+                username = username,
+                password = password,
+                rol = rol
+            )
+            return registrarUsuario(context, nuevoUsuario)
+        }
+
+        // ===================== REGISTRAR USUARIO SIN TOAST (PARA CONTROL MANUAL) =====================
+        fun registrarUsuarioSilencioso(context: Context, nuevoUsuario: Usuario): Boolean {
+            val dbHelper = DatabaseHelper(context)
+
+            if (usuarioExiste(context, nuevoUsuario.username)) {
                 return false
             }
 
@@ -56,13 +93,17 @@ data class Usuario(
                 nuevoUsuario.rol
             )
 
-            return if (resultado != -1L) {
-                Toast.makeText(context, "Usuario registrado con éxito", Toast.LENGTH_SHORT).show()
-                true
-            } else {
-                Toast.makeText(context, "Error al registrar usuario", Toast.LENGTH_SHORT).show()
-                false
-            }
+            return resultado != -1L
+        }
+
+        // ===================== REGISTRAR USUARIO DESDE STRINGS SIN TOAST =====================
+        fun registrarUsuarioDesdeStringsSilencioso(context: Context, username: String, password: String, rol: String): Boolean {
+            val nuevoUsuario = Usuario(
+                username = username,
+                password = password,
+                rol = rol
+            )
+            return registrarUsuarioSilencioso(context, nuevoUsuario)
         }
 
         // ===================== VALIDAR LOGIN =====================
@@ -71,7 +112,7 @@ data class Usuario(
             return dbHelper.validarUsuario(username, password)
         }
 
-        // ===================== VERIFICAR SI USUARIO EXISTE =====================
+        // ===================== VERIFICAR EXISTENCIA DE USUARIO =====================
         fun usuarioExiste(context: Context, username: String): Boolean {
             val dbHelper = DatabaseHelper(context)
             return dbHelper.usuarioExiste(username)
@@ -80,20 +121,21 @@ data class Usuario(
         // ===================== OBTENER USUARIO POR NOMBRE =====================
         fun obtenerUsuarioPorNombre(context: Context, username: String): Usuario? {
             val dbHelper = DatabaseHelper(context)
-            var cursor: Cursor? = null
             return try {
-                cursor = dbHelper.obtenerUsuarioPorNombre(username)
-                if (cursor.moveToFirst()) {
-                    val dbUsername = cursor.getString(cursor.getColumnIndexOrThrow("username"))
-                    val password = cursor.getString(cursor.getColumnIndexOrThrow("password"))
-                    val rol = cursor.getString(cursor.getColumnIndexOrThrow("rol"))
-                    Usuario(dbUsername, password, rol, rol.equals("admin", ignoreCase = true))
-                } else null
+                val dbUsuario = dbHelper.obtenerUsuarioPorNombre(username)
+                dbUsuario?.let {
+                    Usuario(
+                        id = it.id,
+                        username = it.username,
+                        password = it.password,
+                        salt = it.salt,
+                        rol = it.rol,
+                        isAdmin = it.rol.equals("admin", ignoreCase = true)
+                    )
+                }
             } catch (e: Exception) {
                 Log.e("Usuario", "Error obteniendo usuario: ${e.message}")
                 null
-            } finally {
-                cursor?.close()
             }
         }
 
@@ -103,16 +145,37 @@ data class Usuario(
             }
         }
 
+        // ===================== OBTENER USUARIO POR ID =====================
+        fun obtenerUsuarioPorId(context: Context, usuarioId: Int): Usuario? {
+            val dbHelper = DatabaseHelper(context)
+            return try {
+                val dbUsuario = dbHelper.obtenerUsuarioPorId(usuarioId)
+                dbUsuario?.let {
+                    Usuario(
+                        id = it.id,
+                        username = it.username,
+                        password = it.password,
+                        salt = it.salt,
+                        rol = it.rol,
+                        isAdmin = it.rol.equals("admin", ignoreCase = true)
+                    )
+                }
+            } catch (e: Exception) {
+                Log.e("Usuario", "Error obteniendo usuario por ID: ${e.message}")
+                null
+            }
+        }
+
         // ===================== OBTENER ROL =====================
         fun obtenerRol(context: Context, username: String): String {
-            val usuario = obtenerUsuarioPorNombre(context, username)
-            return usuario?.rol ?: "Desconocido"
+            val dbHelper = DatabaseHelper(context)
+            return dbHelper.obtenerRol(username) ?: "Desconocido"
         }
 
         // ===================== OBTENER ACTIVIDAD SEGÚN ROL =====================
         fun obtenerActividadSegunRol(context: Context, username: String): Class<*> {
-            val usuario = obtenerUsuarioPorNombre(context, username)
-            return when (usuario?.rol?.lowercase()) {
+            val rol = obtenerRol(context, username)
+            return when (rol.lowercase()) {
                 "admin" -> AdminActivity::class.java
                 "cliente" -> MainActivity::class.java
                 else -> MainActivity::class.java
@@ -123,21 +186,82 @@ data class Usuario(
         fun obtenerTodosLosUsuarios(context: Context): List<Usuario> {
             val dbHelper = DatabaseHelper(context)
             val usuarios = mutableListOf<Usuario>()
-            var cursor: Cursor? = null
             try {
-                cursor = dbHelper.obtenerTodosLosUsuarios()
-                while (cursor.moveToNext()) {
-                    val username = cursor.getString(cursor.getColumnIndexOrThrow("username"))
-                    val password = cursor.getString(cursor.getColumnIndexOrThrow("password"))
-                    val rol = cursor.getString(cursor.getColumnIndexOrThrow("rol"))
-                    usuarios.add(Usuario(username, password, rol, rol.equals("admin", true)))
+                val cursor = dbHelper.obtenerTodosLosUsuarios()
+                cursor?.use { c ->
+                    val idIndex = c.getColumnIndex(DatabaseHelper.COLUMN_USUARIO_ID)
+                    val usernameIndex = c.getColumnIndex(DatabaseHelper.COLUMN_USERNAME)
+                    val rolIndex = c.getColumnIndex(DatabaseHelper.COLUMN_ROL)
+
+                    while (c.moveToNext()) {
+                        val id = if (idIndex >= 0) c.getInt(idIndex) else 0
+                        val username = if (usernameIndex >= 0) c.getString(usernameIndex) else ""
+                        val rol = if (rolIndex >= 0) c.getString(rolIndex) else "cliente"
+
+                        if (username.isNotBlank()) {
+                            usuarios.add(
+                                Usuario(
+                                    id = id,
+                                    username = username,
+                                    password = "", // No obtenemos la contraseña por seguridad
+                                    rol = rol,
+                                    isAdmin = rol.equals("admin", ignoreCase = true)
+                                )
+                            )
+                        }
+                    }
                 }
             } catch (e: Exception) {
                 Log.e("Usuario", "Error obteniendo usuarios: ${e.message}")
-            } finally {
-                cursor?.close()
             }
             return usuarios
+        }
+
+        // ===================== ACTUALIZAR USUARIO =====================
+        fun actualizarUsuario(context: Context, username: String, nuevoRol: String): Boolean {
+            val dbHelper = DatabaseHelper(context)
+            return try {
+                val resultado = dbHelper.actualizarUsuario(username, nuevoRol)
+                resultado > 0
+            } catch (e: Exception) {
+                Log.e("Usuario", "Error actualizando usuario: ${e.message}")
+                false
+            }
+        }
+
+        // ===================== ELIMINAR USUARIO =====================
+        fun eliminarUsuario(context: Context, username: String): Boolean {
+            val dbHelper = DatabaseHelper(context)
+            return try {
+                val resultado = dbHelper.eliminarUsuario(username)
+                resultado > 0
+            } catch (e: Exception) {
+                Log.e("Usuario", "Error eliminando usuario: ${e.message}")
+                false
+            }
+        }
+
+        // ===================== CAMBIAR CONTRASEÑA =====================
+        fun cambiarPassword(context: Context, username: String, nuevaPassword: String): Boolean {
+            val dbHelper = DatabaseHelper(context)
+            return try {
+                val resultado = dbHelper.cambiarPassword(username, nuevaPassword)
+                resultado > 0
+            } catch (e: Exception) {
+                Log.e("Usuario", "Error cambiando contraseña: ${e.message}")
+                false
+            }
+        }
+
+        // ===================== OBTENER CANTIDAD DE USUARIOS =====================
+        fun obtenerCantidadUsuarios(context: Context): Int {
+            val dbHelper = DatabaseHelper(context)
+            return try {
+                dbHelper.obtenerCantidadUsuarios()
+            } catch (e: Exception) {
+                Log.e("Usuario", "Error obteniendo cantidad de usuarios: ${e.message}")
+                0
+            }
         }
     }
 }

@@ -13,6 +13,10 @@ import com.example.myapplication.models.Usuario
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class ClienteActivity : AppCompatActivity() {
 
@@ -22,6 +26,7 @@ class ClienteActivity : AppCompatActivity() {
     private lateinit var btnMisPedidos: Button
     private lateinit var btnCerrarSesion: Button
     private lateinit var auth: FirebaseAuth
+    private val coroutineScope = CoroutineScope(Dispatchers.Main)
 
     companion object {
         private const val TAG = "ClienteActivity"
@@ -52,7 +57,7 @@ class ClienteActivity : AppCompatActivity() {
             return
         }
 
-        // ✅ Validar sesión activa (Firebase + SessionManager)
+        // ✅ Validar sesión activa
         try {
             Log.d(TAG, "🔍 Validando sesión del usuario...")
             val currentUser = auth.currentUser
@@ -95,46 +100,65 @@ class ClienteActivity : AppCompatActivity() {
     }
 
     private fun setupUserInfo() {
-        try {
-            val currentUser = auth.currentUser
-            val email = currentUser?.email ?: SessionManager.getCurrentUserEmail(this) ?: ""
+        coroutineScope.launch {
+            try {
+                val currentUser = auth.currentUser
+                val email = currentUser?.email ?: SessionManager.getCurrentUserEmail(this@ClienteActivity) ?: ""
 
-            if (email.isNotEmpty()) {
-                // ✅ Verificar usuario tanto en SQLite (DatabaseHelper) como en Firebase
-                val usuarioLocal = Usuario.obtenerUsuarioPorNombre(this, email)
-
-                if (usuarioLocal != null) {
-                    // Usuario encontrado en base local
-                    val userInfo = "Usuario: $email\nRol: ${usuarioLocal.rol}"
-                    tvUserInfo.text = userInfo
-                    Log.d(TAG, "✅ Usuario encontrado en SQLite: ${usuarioLocal.username}")
-                } else {
-                    // Si no existe localmente, se guarda como cliente predeterminado
-                    val nuevoUsuario = Usuario(email, "", "cliente")
-                    val guardado = Usuario.registrarUsuario(this, nuevoUsuario)
-                    if (guardado) {
-                        Log.d(TAG, "✅ Usuario agregado a SQLite (sin registro previo)")
-                        tvUserInfo.text = "Usuario: $email\nRol: cliente"
-                    } else {
-                        Log.w(TAG, "⚠️ No se pudo registrar localmente al usuario")
-                        tvUserInfo.text = "Usuario: $email\nRol: cliente"
+                if (email.isNotEmpty()) {
+                    // ✅ Verificar usuario tanto en SQLite (DatabaseHelper) como en Firebase
+                    val usuarioLocal = withContext(Dispatchers.IO) {
+                        Usuario.obtenerUsuarioPorNombre(this@ClienteActivity, email)
                     }
+
+                    if (usuarioLocal != null) {
+                        // Usuario encontrado en base local
+                        val userInfo = "Usuario: $email\nRol: ${usuarioLocal.rol}"
+                        tvUserInfo.text = userInfo
+                        Log.d(TAG, "✅ Usuario encontrado en SQLite: ${usuarioLocal.username}")
+                    } else {
+                        // Si no existe localmente, se guarda como cliente predeterminado
+                        val nuevoUsuario = Usuario(username = email, password = "", rol = "cliente")
+                        val guardado = withContext(Dispatchers.IO) {
+                            Usuario.registrarUsuario(this@ClienteActivity, nuevoUsuario)
+                        }
+
+                        if (guardado) {
+                            Log.d(TAG, "✅ Usuario agregado a SQLite (sin registro previo)")
+                            tvUserInfo.text = "Usuario: $email\nRol: cliente"
+                        } else {
+                            Log.w(TAG, "⚠️ No se pudo registrar localmente al usuario")
+                            tvUserInfo.text = "Usuario: $email\nRol: cliente"
+                        }
+                    }
+                } else {
+                    tvUserInfo.text = "No se pudo cargar la información del usuario"
+                    Log.w(TAG, "⚠️ No se pudo obtener email del usuario")
                 }
-            } else {
-                tvUserInfo.text = "No se pudo cargar la información del usuario"
-                Log.w(TAG, "⚠️ No se pudo obtener email del usuario")
+            } catch (e: Exception) {
+                Log.e(TAG, "❌ ERROR cargando información del usuario: ${e.message}", e)
+                // Fallback: mostrar información básica desde la sesión
+                try {
+                    val sessionEmail = SessionManager.getCurrentUserEmail(this@ClienteActivity)
+                    val sessionRole = SessionManager.getCurrentUserRole(this@ClienteActivity)
+                    if (!sessionEmail.isNullOrEmpty()) {
+                        tvUserInfo.text = "Usuario: $sessionEmail\nRol: ${sessionRole ?: "cliente"}"
+                    } else {
+                        tvUserInfo.text = "Usuario\nRol: cliente"
+                    }
+                } catch (e2: Exception) {
+                    tvUserInfo.text = "Error cargando información"
+                }
             }
-        } catch (e: Exception) {
-            Log.e(TAG, "❌ ERROR cargando información del usuario: ${e.message}", e)
-            tvUserInfo.text = "Error cargando información"
         }
     }
 
     private fun setupClickListeners() {
+        // 🔹 Botón Ver Productos - Abre la actividad de productos
         btnVerProductos.setOnClickListener {
             try {
                 Log.d(TAG, "🖱️ Clic en Ver Productos")
-                startActivity(Intent(this, MainActivity::class.java))
+                abrirListaProductos()
             } catch (e: Exception) {
                 Log.e(TAG, "❌ ERROR navegando a productos: ${e.message}", e)
                 showToast("Error abriendo productos")
@@ -144,18 +168,20 @@ class ClienteActivity : AppCompatActivity() {
         btnVerCarrito.setOnClickListener {
             try {
                 Log.d(TAG, "🖱️ Clic en Ver Carrito")
-                showToast("Funcionalidad de carrito en desarrollo")
+                abrirCarrito()
             } catch (e: Exception) {
                 Log.e(TAG, "❌ ERROR en botón carrito: ${e.message}", e)
+                showToast("Error abriendo carrito")
             }
         }
 
         btnMisPedidos.setOnClickListener {
             try {
                 Log.d(TAG, "🖱️ Clic en Mis Pedidos")
-                showToast("Funcionalidad de pedidos en desarrollo")
+                abrirMisPedidos()
             } catch (e: Exception) {
                 Log.e(TAG, "❌ ERROR en botón pedidos: ${e.message}", e)
+                showToast("Error abriendo pedidos")
             }
         }
 
@@ -171,18 +197,84 @@ class ClienteActivity : AppCompatActivity() {
         Log.d(TAG, "✅ Listeners configurados correctamente")
     }
 
-    private fun cerrarSesion() {
+    /**
+     * 🔹 CORREGIDO: Método para abrir la lista de productos
+     */
+    private fun abrirListaProductos() {
         try {
-            Log.d(TAG, "🔒 Cerrando sesión...")
-            auth.signOut()
-            SessionManager.logout(this)
-            showToast("Sesión cerrada")
-            Log.d(TAG, "✅ Sesión cerrada exitosamente")
-            redirectToLogin()
+            Log.d(TAG, "🔄 Abriendo lista de productos...")
+
+            // 🔥 CORRECCIÓN CRÍTICA: Cambiar a MainActivity que contiene el fragmento de productos
+            val intent = Intent(this, MainActivity::class.java).apply {
+                // Opcional: agregar extra para indicar que debe ir directamente a productos
+                putExtra("fragment_destination", "productos")
+            }
+            startActivity(intent)
+
+            Log.d(TAG, "✅ Navegación a productos iniciada")
+
         } catch (e: Exception) {
-            Log.e(TAG, "❌ ERROR cerrando sesión: ${e.message}", e)
-            showToast("Error cerrando sesión")
-            redirectToLogin()
+            Log.e(TAG, "❌ ERROR abriendo productos: ${e.message}", e)
+            showToast("No se pudo abrir la lista de productos")
+        }
+    }
+
+    /**
+     * 🔹 NUEVO: Método alternativo si prefieres usar la Activity de productos directamente
+     */
+    private fun abrirProductosActivity() {
+        try {
+            // Si creaste la ProductosActivity que te sugerí anteriormente
+            val intent = Intent(this, ProductosActivity::class.java)
+            startActivity(intent)
+            Log.d(TAG, "✅ ProductosActivity iniciada")
+        } catch (e: Exception) {
+            Log.e(TAG, "❌ ERROR abriendo ProductosActivity: ${e.message}", e)
+            showToast("Error: Activity de productos no disponible")
+        }
+    }
+
+    /**
+     * 🔹 Método para abrir el carrito (a implementar)
+     */
+    private fun abrirCarrito() {
+        try {
+            // TODO: Implementar lógica del carrito
+            showToast("Funcionalidad de carrito en desarrollo")
+            Log.d(TAG, "📋 Abriendo carrito (pendiente de implementar)")
+        } catch (e: Exception) {
+            Log.e(TAG, "❌ ERROR abriendo carrito: ${e.message}", e)
+            showToast("Error abriendo carrito")
+        }
+    }
+
+    /**
+     * 🔹 Método para abrir mis pedidos (a implementar)
+     */
+    private fun abrirMisPedidos() {
+        try {
+            // TODO: Implementar lógica de pedidos
+            showToast("Funcionalidad de pedidos en desarrollo")
+            Log.d(TAG, "📦 Abriendo mis pedidos (pendiente de implementar)")
+        } catch (e: Exception) {
+            Log.e(TAG, "❌ ERROR abriendo pedidos: ${e.message}", e)
+            showToast("Error abriendo pedidos")
+        }
+    }
+
+    private fun cerrarSesion() {
+        coroutineScope.launch {
+            try {
+                Log.d(TAG, "🔒 Cerrando sesión...")
+                auth.signOut()
+                SessionManager.logout(this@ClienteActivity)
+                SessionManager.clearSession(this@ClienteActivity)
+                Log.d(TAG, "✅ Sesión cerrada en Firebase y SessionManager")
+                redirectToLogin()
+            } catch (e: Exception) {
+                Log.e(TAG, "❌ ERROR cerrando sesión", e)
+                redirectToLogin()
+            }
         }
     }
 

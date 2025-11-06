@@ -5,28 +5,31 @@ import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.widget.Button
-import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
-import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
-import androidx.navigation.NavController
-import androidx.navigation.fragment.NavHostFragment
-import androidx.navigation.ui.AppBarConfiguration
-import androidx.navigation.ui.setupActionBarWithNavController
-import androidx.navigation.ui.setupWithNavController
 import com.example.myapplication.R
 import com.example.myapplication.managers.SessionManager
-import com.google.android.material.bottomnavigation.BottomNavigationView
+import com.example.myapplication.models.Usuario
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class MainActivity : AppCompatActivity() {
 
-    private lateinit var bottomNav: BottomNavigationView
-    private lateinit var navController: NavController
-    private lateinit var emergencyLayout: LinearLayout
-    private val auth = Firebase.auth
+    private lateinit var tvUserInfo: TextView
+    private lateinit var tvWelcome: TextView
+    private lateinit var btnVerProductos: Button
+    private lateinit var btnVerCarrito: Button
+    private lateinit var btnMisPedidos: Button
+    private lateinit var btnCerrarSesion: Button
+    private lateinit var btnAdmin: Button
+    private lateinit var auth: FirebaseAuth
+    private val coroutineScope = CoroutineScope(Dispatchers.Main)
 
     companion object {
         private const val TAG = "MainActivity"
@@ -35,119 +38,356 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        Log.d(TAG, "🚀 === MAINACTIVITY ONCREATE INICIADO ===")
+        Log.d(TAG, "🚀 MainActivity onCreate iniciado")
 
         try {
-            enableEdgeToEdge()
             setContentView(R.layout.activity_main)
-            Log.d(TAG, "✅ Layout cargado exitosamente")
+            Log.d(TAG, "✅ Layout activity_main_simple cargado exitosamente")
         } catch (e: Exception) {
-            Log.e(TAG, "❌ ERROR CRÍTICO en setContentView: ${e.message}", e)
+            Log.e(TAG, "❌ ERROR cargando layout: ${e.message}", e)
             showToast("Error cargando la aplicación")
-            createMinimalLayout()
+            crearLayoutMinimoExtremo()
             return
         }
 
-        // Inicializar vistas básicas
         try {
-            bottomNav = findViewById(R.id.bottom_nav)
-            emergencyLayout = findViewById(R.id.emergency_layout)
-            Log.d(TAG, "✅ Vistas básicas inicializadas")
+            auth = Firebase.auth
+            Log.d(TAG, "✅ Firebase Auth inicializado")
         } catch (e: Exception) {
-            Log.e(TAG, "❌ ERROR inicializando vistas: ${e.message}", e)
-            createMinimalLayout()
-            return
-        }
-
-        // Validación de sesión
-        try {
-            Log.d(TAG, "🔐 Validando sesión...")
-            val currentUser = auth.currentUser
-            val sessionEmail = SessionManager.getCurrentUserEmail(this)
-
-            if (currentUser == null || sessionEmail.isNullOrEmpty()) {
-                Log.w(TAG, "🚨 Sesión inválida - Firebase: ${currentUser?.email}, SessionManager: $sessionEmail")
-                showToast("Sesión inválida, redirigiendo al login")
-                redirectToLogin()
-                return
-            }
-
-            Log.d(TAG, "✅ Sesión válida - Usuario: ${currentUser.email}")
-            showToast("Bienvenido ${currentUser.email}")
-
-        } catch (e: Exception) {
-            Log.e(TAG, "❌ ERROR en validación de sesión: ${e.message}", e)
+            Log.e(TAG, "❌ ERROR inicializando Firebase: ${e.message}", e)
+            showToast("Error de configuración")
             redirectToLogin()
             return
         }
 
-        // ✅ Configurar navegación UNA SOLA VEZ
-        setupNavigation()
-
-        Log.d(TAG, "✅ === MAINACTIVITY CONFIGURADO EXITOSAMENTE ===")
-    }
-
-    private fun setupNavigation() {
+        // ✅ Validar sesión activa
         try {
-            Log.d(TAG, "🔄 Configurando navegación...")
+            Log.d(TAG, "🔍 Validando sesión del usuario...")
+            val currentUser = auth.currentUser
+            val sessionEmail = SessionManager.getUsername(this)
 
-            val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as? NavHostFragment
-            if (navHostFragment == null) {
-                Log.e(TAG, "❌ NavHostFragment no encontrado")
-                showEmergencyScreen("Error de navegación - NavHostFragment no encontrado")
+            Log.d(TAG, "📊 Firebase user: ${currentUser?.email ?: "null"}")
+            Log.d(TAG, "📊 SessionManager: ${sessionEmail ?: "null"}")
+
+            if (currentUser == null && sessionEmail.isNullOrEmpty()) {
+                Log.w(TAG, "🚨 No hay sesión activa, redirigiendo a login")
+                showToast("Sesión no válida")
+                redirectToLogin()
                 return
             }
+        } catch (e: Exception) {
+            Log.e(TAG, "❌ ERROR validando sesión: ${e.message}", e)
+            redirectToLogin()
+            return
+        }
 
-            // Obtener NavController
+        try {
+            initializeViews()
+            setupUserInfo()
+            setupClickListeners()
+            Log.d(TAG, "✅ MainActivity configurada exitosamente")
+        } catch (e: Exception) {
+            Log.e(TAG, "❌ ERROR configurando MainActivity: ${e.message}", e)
+            showToast("Error configurando la aplicación")
+            crearLayoutMinimoExtremo()
+        }
+    }
+
+    private fun initializeViews() {
+        tvWelcome = findViewById(R.id.tvWelcome)
+        tvUserInfo = findViewById(R.id.tvUserInfo)
+        btnVerProductos = findViewById(R.id.btnVerProductos)
+        btnVerCarrito = findViewById(R.id.btnVerCarrito)
+        btnMisPedidos = findViewById(R.id.btnMisPedidos)
+        btnCerrarSesion = findViewById(R.id.btnLogout)
+        btnAdmin = findViewById(R.id.btnAdmin)
+
+        Log.d(TAG, "✅ Vistas inicializadas correctamente")
+    }
+
+    private fun setupUserInfo() {
+        coroutineScope.launch {
             try {
-                navController = navHostFragment.navController
-                Log.d(TAG, "✅ NavController obtenido exitosamente")
-            } catch (e: IllegalStateException) {
-                if (e.message?.contains("SavedStateProvider") == true) {
-                    Log.e(TAG, "❌ ERROR: SavedStateProvider ya registrado - Usando estrategia alternativa", e)
-                    return
+                val currentUser = auth.currentUser
+                val email = currentUser?.email ?: SessionManager.getUsername(this@MainActivity) ?: ""
+
+                if (email.isNotEmpty()) {
+                    // ✅ Verificar usuario tanto en SQLite (DatabaseHelper) como en Firebase
+                    val usuarioLocal = withContext(Dispatchers.IO) {
+                        Usuario.obtenerUsuarioPorNombre(this@MainActivity, email)
+                    }
+
+                    val rol = if (usuarioLocal != null) {
+                        // Usuario encontrado en base local
+                        usuarioLocal.rol
+                    } else {
+                        // Si no existe localmente, usar rol por defecto
+                        "cliente"
+                    }
+
+                    // Configurar interfaz según el rol
+                    configurarInterfazSegunRol(rol, email)
+
+                    if (usuarioLocal != null) {
+                        Log.d(TAG, "✅ Usuario encontrado en SQLite: ${usuarioLocal.username} - Rol: $rol")
+                    } else {
+                        Log.w(TAG, "⚠️ Usuario no encontrado en SQLite, usando rol por defecto")
+                    }
                 } else {
-                    throw e
+                    tvUserInfo.text = "No se pudo cargar la información del usuario"
+                    Log.w(TAG, "⚠️ No se pudo obtener email del usuario")
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "❌ ERROR cargando información del usuario: ${e.message}", e)
+                // Fallback: mostrar información básica desde la sesión
+                try {
+                    val sessionEmail = SessionManager.getUsername(this@MainActivity)
+                    val sessionRole = SessionManager.getUserRole(this@MainActivity)
+                    if (!sessionEmail.isNullOrEmpty()) {
+                        configurarInterfazSegunRol(sessionRole ?: "cliente", sessionEmail)
+                    } else {
+                        configurarInterfazSegunRol("cliente", "Usuario")
+                    }
+                } catch (e2: Exception) {
+                    tvUserInfo.text = "Error cargando información"
                 }
             }
+        }
+    }
 
-            // Configurar BottomNavigationView
+    private fun configurarInterfazSegunRol(rol: String, email: String) {
+        runOnUiThread {
+            val userInfo = "Usuario: $email\nRol: $rol"
+            tvUserInfo.text = userInfo
+
+            // Mostrar u ocultar botón de administrador según el rol
+            if (rol.lowercase() == "admin") {
+                btnAdmin.visibility = View.VISIBLE
+                tvWelcome.text = "¡Bienvenido Administrador!"
+            } else {
+                btnAdmin.visibility = View.GONE
+                tvWelcome.text = "¡Bienvenido Cliente!"
+            }
+        }
+    }
+
+    private fun setupClickListeners() {
+        // 🔹 Botón Ver Productos
+        btnVerProductos.setOnClickListener {
             try {
-                bottomNav.setupWithNavController(navController)
-                Log.d(TAG, "✅ BottomNavigationView configurado correctamente")
+                Log.d(TAG, "🖱️ Clic en Ver Productos")
+                abrirProductos()
             } catch (e: Exception) {
-                Log.e(TAG, "❌ ERROR configurando BottomNavigationView: ${e.message}", e)
+                Log.e(TAG, "❌ ERROR navegando a productos: ${e.message}", e)
+                showToast("Error abriendo productos")
             }
+        }
 
-            // Configurar AppBar
+        // 🔹 Botón Ver Carrito
+        btnVerCarrito.setOnClickListener {
             try {
-                val appBarConfiguration = AppBarConfiguration(
-                    setOf(
-                        R.id.homeFragment,
-                        R.id.productsFragment,
-                        R.id.carritoFragment,
-                        R.id.profileFragment
-                    )
-                )
-                setupActionBarWithNavController(navController, appBarConfiguration)
-                Log.d(TAG, "✅ AppBar configurada correctamente")
+                Log.d(TAG, "🖱️ Clic en Ver Carrito")
+                abrirCarrito()
             } catch (e: Exception) {
-                Log.w(TAG, "⚠️ AppBar no configurada: ${e.message}")
+                Log.e(TAG, "❌ ERROR en botón carrito: ${e.message}", e)
+                showToast("Error abriendo carrito")
             }
+        }
 
-            // 🔹 Listener de cambio de destino
-            navController.addOnDestinationChangedListener { _, destination, _ ->
-                when (destination.id) {
-                    R.id.homeFragment -> Log.d(TAG, "📌 Navegando a Home")
-                    R.id.productsFragment -> Log.d(TAG, "📌 Navegando a Productos")
-                    R.id.carritoFragment -> Log.d(TAG, "📌 Navegando a Carrito")
-                    R.id.profileFragment -> Log.d(TAG, "📌 Navegando a Perfil")
-                }
+        // 🔹 Botón Mis Pedidos
+        btnMisPedidos.setOnClickListener {
+            try {
+                Log.d(TAG, "🖱️ Clic en Mis Pedidos")
+                abrirMisPedidos()
+            } catch (e: Exception) {
+                Log.e(TAG, "❌ ERROR en botón pedidos: ${e.message}", e)
+                showToast("Error abriendo pedidos")
             }
+        }
+
+        // 🔹 Botón Panel Administrador (solo visible para admins)
+        btnAdmin.setOnClickListener {
+            try {
+                Log.d(TAG, "🖱️ Clic en Panel Administrador")
+                abrirPanelAdmin()
+            } catch (e: Exception) {
+                Log.e(TAG, "❌ ERROR en botón admin: ${e.message}", e)
+                showToast("Error abriendo panel de administrador")
+            }
+        }
+
+        // 🔹 Botón Cerrar Sesión
+        btnCerrarSesion.setOnClickListener {
+            try {
+                Log.d(TAG, "🖱️ Clic en Cerrar Sesión")
+                cerrarSesion()
+            } catch (e: Exception) {
+                Log.e(TAG, "❌ ERROR en botón cerrar sesión: ${e.message}", e)
+            }
+        }
+
+        Log.d(TAG, "✅ Listeners configurados correctamente")
+    }
+
+    /**
+     * 🔹 Método para abrir productos
+     */
+    private fun abrirProductos() {
+        try {
+            Log.d(TAG, "🔄 Abriendo productos...")
+
+            // TODO: Implementar Activity de productos
+            showToast("Funcionalidad de productos en desarrollo")
+            Log.d(TAG, "📦 Abriendo productos (pendiente de implementar)")
+
+            // Ejemplo de cómo sería cuando implementes ProductsActivity:
+            // val intent = Intent(this, ProductsActivity::class.java)
+            // startActivity(intent)
 
         } catch (e: Exception) {
-            Log.e(TAG, "❌ ERROR CRÍTICO en setupNavigation: ${e.message}", e)
-            showEmergencyScreen("Error crítico en navegación")
+            Log.e(TAG, "❌ ERROR abriendo productos: ${e.message}", e)
+            showToast("No se pudo abrir la lista de productos")
+        }
+    }
+
+    /**
+     * 🔹 Método para abrir el carrito
+     */
+    private fun abrirCarrito() {
+        try {
+            Log.d(TAG, "🔄 Abriendo carrito...")
+
+            // TODO: Implementar Activity de carrito
+            showToast("Funcionalidad de carrito en desarrollo")
+            Log.d(TAG, "🛒 Abriendo carrito (pendiente de implementar)")
+
+            // Ejemplo de cómo sería cuando implementes CarritoActivity:
+            // val intent = Intent(this, CarritoActivity::class.java)
+            // startActivity(intent)
+
+        } catch (e: Exception) {
+            Log.e(TAG, "❌ ERROR abriendo carrito: ${e.message}", e)
+            showToast("Error abriendo carrito")
+        }
+    }
+
+    /**
+     * 🔹 Método para abrir mis pedidos
+     */
+    private fun abrirMisPedidos() {
+        try {
+            Log.d(TAG, "🔄 Abriendo mis pedidos...")
+
+            // TODO: Implementar Activity de pedidos
+            showToast("Funcionalidad de pedidos en desarrollo")
+            Log.d(TAG, "📋 Abriendo mis pedidos (pendiente de implementar)")
+
+            // Ejemplo de cómo sería cuando implementes PedidosActivity:
+            // val intent = Intent(this, PedidosActivity::class.java)
+            // startActivity(intent)
+
+        } catch (e: Exception) {
+            Log.e(TAG, "❌ ERROR abriendo pedidos: ${e.message}", e)
+            showToast("Error abriendo pedidos")
+        }
+    }
+
+    /**
+     * 🔹 Método para abrir panel de administrador
+     */
+    private fun abrirPanelAdmin() {
+        try {
+            Log.d(TAG, "🔄 Abriendo panel de administrador...")
+
+            val intent = Intent(this, AdminActivity::class.java)
+            startActivity(intent)
+            Log.d(TAG, "✅ AdminActivity iniciada")
+
+        } catch (e: Exception) {
+            Log.e(TAG, "❌ ERROR abriendo panel admin: ${e.message}", e)
+            showToast("Error: No se pudo abrir el panel de administrador")
+        }
+    }
+
+    private fun cerrarSesion() {
+        coroutineScope.launch {
+            try {
+                Log.d(TAG, "🔒 Cerrando sesión...")
+                auth.signOut()
+                SessionManager.logout(this@MainActivity)
+                SessionManager.clearSession(this@MainActivity)
+                Log.d(TAG, "✅ Sesión cerrada en Firebase y SessionManager")
+                redirectToLogin()
+            } catch (e: Exception) {
+                Log.e(TAG, "❌ ERROR cerrando sesión", e)
+                redirectToLogin()
+            }
+        }
+    }
+
+    private fun redirectToLogin() {
+        try {
+            Log.d(TAG, "🔄 Redirigiendo a LoginActivity...")
+            val intent = Intent(this, LoginActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            }
+            startActivity(intent)
+            finish()
+        } catch (e: Exception) {
+            Log.e(TAG, "❌ ERROR redirigiendo a login: ${e.message}", e)
+            finishAffinity()
+        }
+    }
+
+    private fun crearLayoutMinimoExtremo() {
+        try {
+            Log.d(TAG, "🔄 Creando layout mínimo extremo...")
+
+            val textView = TextView(this).apply {
+                text = "Sesión Activa\n(Pantalla básica)"
+                textSize = 16f
+                setPadding(50, 50, 50, 50)
+                gravity = android.view.Gravity.CENTER
+            }
+
+            val button = Button(this).apply {
+                text = "Cerrar Sesión"
+                setOnClickListener { cerrarSesion() }
+            }
+
+            val layout = android.widget.LinearLayout(this).apply {
+                orientation = android.widget.LinearLayout.VERTICAL
+                gravity = android.view.Gravity.CENTER
+                setBackgroundColor(android.graphics.Color.WHITE)
+                addView(textView)
+                addView(button)
+            }
+
+            setContentView(layout)
+            Log.d(TAG, "✅ Layout mínimo extremo creado")
+
+        } catch (e: Exception) {
+            Log.e(TAG, "❌ ERROR CRÍTICO en layout mínimo", e)
+            redirectToLogin()
+        }
+    }
+
+    private fun showToast(message: String) {
+        try {
+            Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+            Log.d(TAG, "💬 Toast: $message")
+        } catch (e: Exception) {
+            Log.e(TAG, "❌ ERROR mostrando toast: ${e.message}", e)
+        }
+    }
+
+    override fun onBackPressed() {
+        try {
+            Log.d(TAG, "🔙 Botón back presionado")
+            moveTaskToBack(true)
+        } catch (e: Exception) {
+            Log.e(TAG, "❌ ERROR en onBackPressed: ${e.message}", e)
+            super.onBackPressed()
         }
     }
 
@@ -166,120 +406,8 @@ class MainActivity : AppCompatActivity() {
         Log.d(TAG, "📱 MainActivity onPause")
     }
 
-    override fun onStop() {
-        super.onStop()
-        Log.d(TAG, "📱 MainActivity onStop")
-    }
-
     override fun onDestroy() {
         super.onDestroy()
         Log.d(TAG, "📱 MainActivity onDestroy")
-    }
-
-    private fun createMinimalLayout() {
-        try {
-            Log.d(TAG, "🔄 Creando layout mínimo de emergencia...")
-            val layout = LinearLayout(this).apply {
-                orientation = LinearLayout.VERTICAL
-                setBackgroundColor(resources.getColor(R.color.white, theme))
-                gravity = android.view.Gravity.CENTER
-            }
-
-            val textView = TextView(this).apply {
-                text = "Error cargando la aplicación"
-                textSize = 18f
-                setTextColor(resources.getColor(R.color.black, theme))
-            }
-
-            val button = Button(this).apply {
-                text = "Cerrar Sesión"
-                setOnClickListener {
-                    Log.d(TAG, "🖱️ Clic en cerrar sesión desde layout mínimo")
-                    cerrarSesion()
-                }
-            }
-
-            layout.addView(textView)
-            layout.addView(button)
-            setContentView(layout)
-            Log.d(TAG, "✅ Layout mínimo creado exitosamente")
-
-        } catch (e: Exception) {
-            Log.e(TAG, "❌ ERROR CRÍTICO: No se puede crear layout mínimo", e)
-            redirectToLogin()
-        }
-    }
-
-    private fun showEmergencyScreen(message: String) {
-        try {
-            Log.d(TAG, "🆘 Mostrando pantalla de emergencia: $message")
-            val tvEmergencyMessage = findViewById<TextView>(R.id.tv_emergency_message)
-            val btnEmergencyLogout = findViewById<Button>(R.id.btn_emergency_logout)
-
-            tvEmergencyMessage.text = message
-            emergencyLayout.visibility = View.VISIBLE
-
-            btnEmergencyLogout.setOnClickListener {
-                Log.d(TAG, "🖱️ Clic en cerrar sesión desde pantalla de emergencia")
-                cerrarSesion()
-            }
-
-            bottomNav.visibility = View.GONE
-            findViewById<androidx.fragment.app.FragmentContainerView>(R.id.nav_host_fragment)?.visibility = View.GONE
-
-            Log.d(TAG, "✅ Pantalla de emergencia activada")
-        } catch (e: Exception) {
-            Log.e(TAG, "❌ ERROR en pantalla de emergencia", e)
-            createMinimalLayout()
-        }
-    }
-
-    private fun redirectToLogin() {
-        try {
-            Log.d(TAG, "🔄 Redirigiendo a LoginActivity...")
-            val intent = Intent(this, LoginActivity::class.java).apply {
-                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-            }
-            startActivity(intent)
-            finish()
-        } catch (e: Exception) {
-            Log.e(TAG, "❌ ERROR redirigiendo a login", e)
-            finishAffinity()
-        }
-    }
-
-    private fun cerrarSesion() {
-        try {
-            Log.d(TAG, "🔒 Cerrando sesión...")
-            auth.signOut()
-            SessionManager.logout(this)
-            Log.d(TAG, "✅ Sesión cerrada en Firebase y SessionManager")
-            redirectToLogin()
-        } catch (e: Exception) {
-            Log.e(TAG, "❌ ERROR cerrando sesión", e)
-            redirectToLogin()
-        }
-    }
-
-    private fun showToast(message: String) {
-        try {
-            Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
-            Log.d(TAG, "💬 Toast mostrado: $message")
-        } catch (e: Exception) {
-            Log.e(TAG, "❌ Error mostrando toast: ${e.message}", e)
-        }
-    }
-
-    override fun onSupportNavigateUp(): Boolean {
-        return try {
-            if (::navController.isInitialized) {
-                navController.navigateUp() || super.onSupportNavigateUp()
-            } else {
-                super.onSupportNavigateUp()
-            }
-        } catch (e: Exception) {
-            Log.e(TAG, "❌ Error en onSupportNavigateUp: ${e.message}", e)
-            super.onSupportNavigateUp()
-        }
     }
 }

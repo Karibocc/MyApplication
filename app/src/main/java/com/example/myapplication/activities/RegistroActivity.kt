@@ -17,6 +17,11 @@ import com.google.firebase.auth.FirebaseAuthUserCollisionException
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.tasks.await
 
 class RegistroActivity : AppCompatActivity() {
 
@@ -25,6 +30,7 @@ class RegistroActivity : AppCompatActivity() {
     private lateinit var etPassword: EditText
     private lateinit var switchRol: SwitchMaterial
     private lateinit var auth: FirebaseAuth
+    private val coroutineScope = CoroutineScope(Dispatchers.Main)
 
     companion object {
         private const val TAG = "RegistroActivity"
@@ -68,105 +74,238 @@ class RegistroActivity : AppCompatActivity() {
         val usernameNormalizado = username.lowercase()
         val rol = if (switchRol.isChecked) "admin" else "cliente"
 
-        Log.d(TAG, "🔐 Registrando usuario: $usernameNormalizado")
+        Log.d(TAG, "🔐 Intentando registrar usuario: $usernameNormalizado")
 
         btnRegistrar.isEnabled = false
         btnRegistrar.text = "Registrando..."
 
-        // ✅ 1. Crear usuario en Firebase Authentication
-        auth.createUserWithEmailAndPassword(usernameNormalizado, password)
-            .addOnCompleteListener(this) { task ->
-                if (task.isSuccessful) {
+        coroutineScope.launch {
+            try {
+                // ✅ 1. Verificar si el usuario ya existe en SQLite
+                val usuarioExiste = withContext(Dispatchers.IO) {
+                    Usuario.usuarioExiste(this@RegistroActivity, usernameNormalizado)
+                }
+
+                if (usuarioExiste) {
+                    Log.d(TAG, "ℹ️ Usuario ya existe en SQLite, procediendo a redirigir...")
+                    mostrarExitoYRedirigir(usernameNormalizado, esRegistroNuevo = false)
+                    return@launch
+                }
+
+                // ✅ 2. Crear usuario en Firebase Authentication
+                Log.d(TAG, "🔥 Creando usuario en Firebase...")
+                val authResult = withContext(Dispatchers.IO) {
+                    try {
+                        auth.createUserWithEmailAndPassword(usernameNormalizado, password).await()
+                    } catch (e: Exception) {
+                        throw e
+                    }
+                }
+
+                if (authResult.user != null) {
                     Log.d(TAG, "✅ Usuario creado en Firebase Auth")
 
-                    // ✅ 2. Guardar en SQLite (DatabaseHelper)
-                    val nuevoUsuario = Usuario(usernameNormalizado, password, rol)
-                    val registroExitoso = Usuario.registrarUsuario(this, nuevoUsuario)
-
-                    if (registroExitoso) {
-                        Log.d(TAG, "✅ Usuario guardado en SQLite")
-
-                        // ✅ 3. Sincronizar con Firestore (opcional)
-                        val firestore = Firebase.firestore
-                        val datosUsuario = hashMapOf(
-                            "email" to usernameNormalizado,
-                            "rol" to rol,
-                            "fechaRegistro" to System.currentTimeMillis()
-                        )
-                        firestore.collection("usuarios")
-                            .document(usernameNormalizado)
-                            .set(datosUsuario)
-                            .addOnSuccessListener {
-                                Log.d(TAG, "✅ Usuario sincronizado con Firestore")
-                            }
-                            .addOnFailureListener { e ->
-                                Log.e(TAG, "⚠️ Error al guardar en Firestore: ${e.message}", e)
-                            }
-
-                        // ✅ 4. Cerrar sesión de Firebase tras registro
+                    // ✅ 3. 🔥 CORRECCIÓN SIMPLIFICADA: Guardar en SQLite
+                    Log.d(TAG, "💾 Guardando en SQLite...")
+                    val registroExitoso = withContext(Dispatchers.IO) {
                         try {
-                            auth.signOut()
-                            Log.d(TAG, "✅ Sesión de Firebase cerrada después del registro")
+                            // Intentar el método principal
+                            val resultado = Usuario.registrarUsuarioDesdeStrings(
+                                this@RegistroActivity,
+                                usernameNormalizado,
+                                password,
+                                rol
+                            )
+
+                            if (resultado) {
+                                Log.d(TAG, "✅ Método principal exitoso")
+                                true
+                            } else {
+                                // Si el método principal falla, verificar si de todas formas se guardó
+                                Log.d(TAG, "🔄 Método principal falló, verificando si se guardó...")
+                                val usuarioGuardado = Usuario.obtenerUsuarioPorNombre(this@RegistroActivity, usernameNormalizado)
+                                usuarioGuardado != null
+                            }
+
                         } catch (e: Exception) {
-                            Log.e(TAG, "⚠️ Error cerrando sesión de Firebase: ${e.message}")
+                            Log.e(TAG, "❌ Error en guardar en SQLite: ${e.message}")
+                            false
                         }
+                    }
 
-                        // ✅ 5. Limpiar sesión previa local
-                        SessionManager.logout(this)
+                    // ✅ 4. 🔥 VERIFICACIÓN FINAL: Confirmar que el usuario existe
+                    val usuarioVerificado = withContext(Dispatchers.IO) {
+                        Usuario.obtenerUsuarioPorNombre(this@RegistroActivity, usernameNormalizado) != null
+                    }
 
-                        Toast.makeText(this, "✅ Registro exitoso. Ahora puede iniciar sesión", Toast.LENGTH_LONG).show()
+                    Log.d(TAG, "🔍 Verificación final - Usuario en BD: $usuarioVerificado")
 
-                        limpiarCampos()
+                    if (usuarioVerificado) {
+                        Log.d(TAG, "🎉 REGISTRO COMPLETADO EXITOSAMENTE")
 
-                        // ✅ 6. Redirigir al Login
-                        val intent = Intent(this, LoginActivity::class.java).apply {
-                            putExtra("email_registrado", usernameNormalizado)
-                            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                        }
-                        startActivity(intent)
-                        finish()
+                        // ✅ 5. Sincronizar con Firestore (opcional)
+                        sincronizarConFirestore(usernameNormalizado, rol)
+
+                        // ✅ 6. Mostrar éxito y redirigir
+                        mostrarExitoYRedirigir(usernameNormalizado, esRegistroNuevo = true)
 
                     } else {
-                        Log.e(TAG, "❌ Error al guardar en SQLite")
+                        Log.e(TAG, "❌ Error: No se pudo verificar el usuario en SQLite")
 
-                        try {
-                            auth.signOut()
-                        } catch (e: Exception) {
-                            Log.e(TAG, "Error cerrando sesión", e)
-                        }
+                        // Limpiar usuario de Firebase si falló en SQLite
+                        limpiarUsuarioFirebase()
 
-                        Toast.makeText(this, "Error al guardar en base de datos local", Toast.LENGTH_SHORT).show()
-                        btnRegistrar.isEnabled = true
-                        btnRegistrar.text = "Registrar"
+                        Toast.makeText(
+                            this@RegistroActivity,
+                            "Error al guardar en base de datos local",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        resetBotonRegistro()
                     }
 
                 } else {
-                    // ⚠️ Manejo avanzado de errores de Firebase
-                    val errorMessage = when (task.exception) {
-                        is FirebaseAuthUserCollisionException -> "El email ya está registrado en Firebase"
-                        is FirebaseAuthInvalidCredentialsException -> "Formato de email inválido"
-                        else -> task.exception?.message ?: "Error al registrar en Firebase"
-                    }
-
-                    Log.e(TAG, "❌ Error en Firebase: $errorMessage", task.exception)
-                    Toast.makeText(this, errorMessage, Toast.LENGTH_SHORT).show()
-
-                    btnRegistrar.isEnabled = true
-                    btnRegistrar.text = "Registrar"
+                    throw Exception("Usuario de Firebase nulo después del registro")
                 }
+
+            } catch (e: Exception) {
+                // ⚠️ Manejo avanzado de errores de Firebase
+                manejarErrorFirebase(e)
             }
+        }
+    }
+
+    /**
+     * 🔥 NUEVO: Sincronizar con Firestore
+     */
+    private fun sincronizarConFirestore(email: String, rol: String) {
+        try {
+            val firestore = Firebase.firestore
+            val datosUsuario = hashMapOf(
+                "email" to email,
+                "rol" to rol,
+                "fechaRegistro" to System.currentTimeMillis()
+            )
+            firestore.collection("usuarios")
+                .document(email)
+                .set(datosUsuario)
+                .addOnSuccessListener {
+                    Log.d(TAG, "✅ Usuario sincronizado con Firestore")
+                }
+                .addOnFailureListener { e ->
+                    Log.e(TAG, "⚠️ Error al guardar en Firestore: ${e.message}", e)
+                }
+        } catch (e: Exception) {
+            Log.e(TAG, "⚠️ Error en Firestore: ${e.message}", e)
+        }
+    }
+
+    /**
+     * 🔥 NUEVO: Limpiar usuario de Firebase en caso de error
+     */
+    private suspend fun limpiarUsuarioFirebase() {
+        try {
+            auth.currentUser?.delete()?.await()
+            auth.signOut()
+            Log.d(TAG, "✅ Usuario eliminado de Firebase después del error")
+        } catch (e: Exception) {
+            Log.e(TAG, "Error limpiando usuario de Firebase", e)
+        }
+    }
+
+    /**
+     * 🔥 NUEVO: Manejar errores de Firebase
+     */
+    private fun manejarErrorFirebase(e: Exception) {
+        val errorMessage = when (e) {
+            is FirebaseAuthUserCollisionException -> "El email ya está registrado en Firebase. Puede iniciar sesión directamente."
+            is FirebaseAuthInvalidCredentialsException -> "Formato de email inválido"
+            else -> e.message ?: "Error al registrar en Firebase"
+        }
+
+        Log.e(TAG, "❌ Error en registro: $errorMessage", e)
+
+        // 🔥 CORRECCIÓN: Si el usuario ya existe en Firebase pero no en SQLite, redirigir
+        if (e is FirebaseAuthUserCollisionException) {
+            val username = etUsuario.text.toString().trim().lowercase()
+            mostrarExitoYRedirigir(username, esRegistroNuevo = false)
+        } else {
+            Toast.makeText(this@RegistroActivity, errorMessage, Toast.LENGTH_LONG).show()
+            resetBotonRegistro()
+        }
+    }
+
+    /**
+     * 🔥 CORREGIDO: Manejar el éxito del registro y redirigir
+     */
+    private fun mostrarExitoYRedirigir(email: String, esRegistroNuevo: Boolean) {
+        runOnUiThread {
+            try {
+                // Cerrar sesión de Firebase
+                try {
+                    auth.signOut()
+                    Log.d(TAG, "✅ Sesión de Firebase cerrada")
+                } catch (e: Exception) {
+                    Log.e(TAG, "⚠️ Error cerrando sesión de Firebase: ${e.message}")
+                }
+
+                // Limpiar sesión previa local
+                SessionManager.logout(this@RegistroActivity)
+
+                // Mostrar mensaje apropiado
+                val mensaje = if (esRegistroNuevo) {
+                    "✅ Registro exitoso. Ahora puede iniciar sesión"
+                } else {
+                    "ℹ️ El usuario ya estaba registrado. Puede iniciar sesión"
+                }
+
+                Toast.makeText(this@RegistroActivity, mensaje, Toast.LENGTH_LONG).show()
+
+                // Limpiar campos solo si es registro nuevo
+                if (esRegistroNuevo) {
+                    limpiarCampos()
+                }
+
+                // Resetear botón
+                resetBotonRegistro()
+
+                // Redirigir inmediatamente
+                val intent = Intent(this@RegistroActivity, LoginActivity::class.java).apply {
+                    putExtra("email_registrado", email)
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                }
+                startActivity(intent)
+                finish()
+
+            } catch (e: Exception) {
+                Log.e(TAG, "❌ Error en mostrarExitoYRedirigir: ${e.message}", e)
+                // Fallback: redirigir inmediatamente
+                val intent = Intent(this@RegistroActivity, LoginActivity::class.java)
+                startActivity(intent)
+                finish()
+            }
+        }
+    }
+
+    private fun resetBotonRegistro() {
+        runOnUiThread {
+            btnRegistrar.isEnabled = true
+            btnRegistrar.text = "Registrar"
+        }
     }
 
     private fun limpiarCampos() {
         try {
             etUsuario.text.clear()
             etPassword.text.clear()
-            Log.d(TAG, "✅ Campos limpiados después del registro exitoso")
+            switchRol.isChecked = false
+            Log.d(TAG, "✅ Campos limpiados")
         } catch (e: Exception) {
             Log.e(TAG, "Error limpiando campos", e)
         }
     }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        // Limpiar recursos si es necesario
+    }
 }
-
-
-

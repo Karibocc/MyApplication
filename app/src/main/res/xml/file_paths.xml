@@ -1,57 +1,76 @@
 <?xml version="1.0" encoding="utf-8"?>
 <paths xmlns:android="http://schemas.android.com/apk/res/android">
+
     <!-- ==================== -->
     <!-- ALMACENAMIENTO INTERNO -->
     <!-- ==================== -->
-    <files-path name="internal_files" path="." />                  <!-- /data/data/<package>/files/ -->
-    <files-path name="my_custom_folder" path="my_files/" />        <!-- /data/data/<package>/files/my_files/ -->
-    <cache-path name="internal_cache" path="." />                  <!-- /data/data/<package>/cache/ -->
 
-    <!-- ✅ NUEVO: Para archivos de base de datos -->
-    <files-path name="databases" path="databases/" />              <!-- /data/data/<package>/databases/ -->
+    <!-- Directorio principal de archivos internos -->
+    <files-path name="internal_files" path="." />
 
-    <!-- ✅ NUEVO: Para archivos de configuración -->
-    <files-path name="shared_prefs" path="shared_prefs/" />        <!-- /data/data/<package>/shared_prefs/ -->
+    <!-- Directorio personalizado para archivos de la app -->
+    <files-path name="my_custom_folder" path="my_files/" />
+
+    <!-- Directorio de cache interno -->
+    <cache-path name="internal_cache" path="." />
+
+    <!-- Directorio para archivos de base de datos -->
+    <files-path name="databases" path="databases/" />
+
+    <!-- Directorio para archivos de configuración -->
+    <files-path name="shared_prefs" path="shared_prefs/" />
+
+    <!-- Directorio para archivos temporales internos -->
+    <cache-path name="temp_files" path="temp/" />
+
+    <!-- Directorio para assets -->
+    <files-path name="assets_files" path="assets/" />
 
     <!-- ==================== -->
     <!-- ALMACENAMIENTO EXTERNO PRIVADO -->
     <!-- ==================== -->
-    <external-files-path name="external_private_files" path="." /> <!-- /storage/emulated/0/Android/data/<package>/files/ -->
-    <external-cache-path name="external_private_cache" path="." />  <!-- /storage/emulated/0/Android/data/<package>/cache/ -->
 
-    <!-- ✅ NUEVO: Directorios específicos para Android 10+ (Scoped Storage) -->
-    <external-files-path name="external_images" path="Pictures/" />        <!-- /storage/emulated/0/Android/data/<package>/files/Pictures/ -->
-    <external-files-path name="external_documents" path="Documents/" />    <!-- /storage/emulated/0/Android/data/<package>/files/Documents/ -->
-    <external-files-path name="external_audio" path="Music/" />            <!-- /storage/emulated/0/Android/data/<package>/files/Music/ -->
-    <external-files-path name="external_videos" path="Movies/" />          <!-- /storage/emulated/0/Android/data/<package>/files/Movies/ -->
-    <external-files-path name="external_downloads" path="Download/" />     <!-- /storage/emulated/0/Android/data/<package>/files/Download/ -->
+    <!-- Directorio principal de archivos externos privados -->
+    <external-files-path name="external_private_files" path="." />
+
+    <!-- Directorio de cache externo privado -->
+    <external-cache-path name="external_private_cache" path="." />
+
+    <!-- Directorio para imágenes (USADO POR LA CÁMARA) -->
+    <external-files-path name="my_images" path="Pictures/" />
+
+    <!-- Directorios específicos para Android 10+ (Scoped Storage) -->
+    <external-files-path name="external_documents" path="Documents/" />
+    <external-files-path name="external_audio" path="Music/" />
+    <external-files-path name="external_videos" path="Movies/" />
+    <external-files-path name="external_downloads" path="Download/" />
+
+    <!-- Directorio para archivos temporales externos -->
+    <external-cache-path name="external_temp" path="temp/" />
 
     <!-- ==================== -->
     <!-- ALMACENAMIENTO EXTERNO PÚBLICO -->
     <!-- ==================== -->
-    <external-path name="downloads" path="Download/" />             <!-- /storage/emulated/0/Download/ -->
-    <external-path name="dcim" path="DCIM/" />                      <!-- /storage/emulated/0/DCIM/ -->
-    <external-path name="pictures" path="Pictures/" />              <!-- /storage/emulated/0/Pictures/ -->
-    <external-path name="movies" path="Movies/" />                  <!-- /storage/emulated/0/Movies/ -->
-    <external-path name="music" path="Music/" />                    <!-- /storage/emulated/0/Music/ -->
-    <external-path name="documents" path="Documents/" />            <!-- /storage/emulated/0/Documents/ -->
 
-    <!-- ✅ NUEVO: Para acceso a medios en Android 11+ -->
-    <external-path name="media" path="." />                         <!-- /storage/emulated/0/ -->
+    <!-- Directorios públicos standard -->
+    <external-path name="downloads" path="Download/" />
+    <external-path name="dcim" path="DCIM/" />
+    <external-path name="pictures" path="Pictures/" />
+    <external-path name="movies" path="Movies/" />
+    <external-path name="music" path="Music/" />
+    <external-path name="documents" path="Documents/" />
 
-    <!-- ✅ NUEVO: Para archivos de la app en almacenamiento público -->
+    <!-- Acceso general a medios -->
+    <external-path name="media" path="." />
+
+    <!-- Directorio público específico de la app -->
     <external-path name="app_public_files" path="Android/data/${applicationId}/files/" />
 
     <!-- ==================== -->
     <!-- COMPATIBILIDAD AVANZADA -->
     <!-- ==================== -->
-    <!-- ✅ NUEVO: Para acceso a tarjetas SD (si están disponibles) -->
-    <root-path name="root" path="." />                              <!-- / (sistema de archivos raíz) -->
 
-    <!-- ✅ NUEVO: Para archivos temporales -->
-    <cache-path name="temp_files" path="temp/" />                   <!-- /data/data/<package>/cache/temp/ -->
-    <external-cache-path name="external_temp" path="temp/" />       <!-- /storage/emulated/0/Android/data/<package>/cache/temp/ -->
+    <!-- Para acceso a sistemas de archivos raíz (tarjetas SD) -->
+    <root-path name="root" path="." />
 
-    <!-- ✅ NUEVO: Para compartir archivos desde assets o recursos -->
-    <files-path name="assets_files" path="assets/" />               <!-- /data/data/<package>/files/assets/ -->
 </paths>

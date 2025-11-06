@@ -4,6 +4,7 @@
     <color name="colorPrimary">#6200EE</color>
     <color name="colorPrimaryVariant">#3700B3</color>
     <color name="colorSecondary">#03DAC5</color>
+    <color name="error_red">#FF5252</color>
 
     <!--  Colores neutrales -->
     <color name="white">#FFFFFF</color>
@@ -14,4 +15,8 @@
 
     <!--  Color personalizado para tu FAB -->
     <color name="verde">#3FCA10</color>
+
+    <color name="background">#F8F9FA</color>
+    <color name="textSecondary">#757575</color>
+
 </resources>

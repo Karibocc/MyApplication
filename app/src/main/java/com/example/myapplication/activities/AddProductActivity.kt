@@ -13,6 +13,10 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.FileProvider
 import com.example.myapplication.R
 import com.example.myapplication.database.DatabaseHelper
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
@@ -34,9 +38,15 @@ class AddProductActivity : AppCompatActivity() {
     private val PICK_IMAGE_REQUEST = 1
     private val CAPTURE_IMAGE_REQUEST = 2
 
+    private lateinit var dbHelper: DatabaseHelper
+    private val coroutineScope = CoroutineScope(Dispatchers.Main)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_add_product)
+
+        // Inicializar DatabaseHelper
+        dbHelper = DatabaseHelper(this)
 
         initViews()
         setupButtons()
@@ -127,15 +137,30 @@ class AddProductActivity : AppCompatActivity() {
         val precio = editTextPrecio.text.toString().trim().toDouble()
         val stock = editTextStock.text.toString().trim().toIntOrNull() ?: 0
 
-        val dbHelper = DatabaseHelper(this)
-        val id = dbHelper.insertarProducto(nombre, descripcion, precio, imagenPath ?: "", stock)
+        // Deshabilitar botón durante el guardado
+        buttonGuardar.isEnabled = false
+        buttonGuardar.text = "Guardando..."
 
-        if (id != -1L) {
-            Toast.makeText(this, "Producto guardado con éxito", Toast.LENGTH_SHORT).show()
-            setResult(Activity.RESULT_OK)
-            finish()
-        } else {
-            Toast.makeText(this, "Error al guardar el producto", Toast.LENGTH_SHORT).show()
+        coroutineScope.launch {
+            try {
+                val id = withContext(Dispatchers.IO) {
+                    dbHelper.insertarProducto(nombre, descripcion, precio, imagenPath ?: "", stock)
+                }
+
+                if (id != -1L) {
+                    Toast.makeText(this@AddProductActivity, "Producto guardado con éxito", Toast.LENGTH_SHORT).show()
+                    setResult(Activity.RESULT_OK)
+                    finish()
+                } else {
+                    Toast.makeText(this@AddProductActivity, "Error al guardar el producto", Toast.LENGTH_SHORT).show()
+                    buttonGuardar.isEnabled = true
+                    buttonGuardar.text = "Guardar Producto"
+                }
+            } catch (e: Exception) {
+                Toast.makeText(this@AddProductActivity, "Error inesperado: ${e.message}", Toast.LENGTH_SHORT).show()
+                buttonGuardar.isEnabled = true
+                buttonGuardar.text = "Guardar Producto"
+            }
         }
     }
 
@@ -154,7 +179,12 @@ class AddProductActivity : AppCompatActivity() {
             isValid = false
         } else {
             try {
-                editTextPrecio.text.toString().trim().toDouble()
+                val precio = editTextPrecio.text.toString().trim().toDouble()
+                if (precio < 0) {
+                    editTextPrecio.error = "El precio no puede ser negativo"
+                    if (isValid) editTextPrecio.requestFocus()
+                    isValid = false
+                }
             } catch (e: NumberFormatException) {
                 editTextPrecio.error = "Precio inválido"
                 if (isValid) editTextPrecio.requestFocus()
@@ -168,7 +198,12 @@ class AddProductActivity : AppCompatActivity() {
             isValid = false
         } else {
             try {
-                editTextStock.text.toString().trim().toInt()
+                val stock = editTextStock.text.toString().trim().toInt()
+                if (stock < 0) {
+                    editTextStock.error = "El stock no puede ser negativo"
+                    if (isValid) editTextStock.requestFocus()
+                    isValid = false
+                }
             } catch (e: NumberFormatException) {
                 editTextStock.error = "Stock inválido"
                 if (isValid) editTextStock.requestFocus()
@@ -177,6 +212,34 @@ class AddProductActivity : AppCompatActivity() {
         }
 
         return isValid
+    }
+
+    /**
+     * 🔹 NUEVO: Método para limpiar todos los campos
+     */
+    private fun limpiarCampos() {
+        editTextNombre.text.clear()
+        editTextDescripcion.text.clear()
+        editTextPrecio.text.clear()
+        editTextStock.text.clear()
+        imageViewProducto.setImageResource(R.drawable.ic_image_placeholder)
+        imagenPath = null
+        imageUri = null
+    }
+
+    /**
+     * 🔹 NUEVO: Método para verificar si el producto ya existe
+     */
+    private fun productoExiste(nombre: String): Boolean {
+        // Esta funcionalidad requeriría un método adicional en DatabaseHelper
+        // para buscar productos por nombre
+        return false
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        // Cerrar la conexión de la base de datos
+        dbHelper.close()
     }
 
     companion object {

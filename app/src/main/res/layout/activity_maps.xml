@@ -11,8 +11,8 @@
     <androidx.fragment.app.FragmentContainerView
         android:id="@+id/map_fragment"
         android:name="com.google.android.gms.maps.SupportMapFragment"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
         tools:layout="@layout/map_preview"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -25,14 +25,12 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginEnd="16dp"
-        android:layout_marginBottom="184dp"
+        android:layout_marginBottom="16dp"
         android:contentDescription="@string/desc_my_location"
         android:src="@drawable/ic_my_location"
         app:backgroundTint="@color/verde"
         app:tint="@android:color/white"
         app:elevation="8dp"
-        app:pressedTranslationZ="12dp"
-        app:rippleColor="@color/fab_ripple_color"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 

@@ -64,5 +64,22 @@
 
     <!-- 🔹 Agregado para corregir error -->
     <string name="imagen_producto">Imagen del producto</string>
+
+    <!-- Mensajes de validación -->
+    <string name="error_invalid_stock">Stock inválido</string>
+    <string name="error_negative_stock">El stock no puede ser negativo</string>
+    <string name="error_negative_price">El precio no puede ser negativo</string>
+
+    <!-- Mensajes de éxito/error -->
+    <string name="image_selected_success">Imagen seleccionada correctamente</string>
+    <string name="image_captured_success">Imagen capturada correctamente</string>
+    <string name="error_selecting_image">Error al seleccionar imagen</string>
+    <string name="error_capturing_image">Error al capturar imagen</string>
+
+    <!-- Placeholders para campos vacíos -->
+    <string name="hint_enter_name">Ingresa el nombre del producto</string>
+    <string name="hint_enter_description">Ingresa una descripción</string>
+    <string name="hint_enter_price">0.00</string>
+    <string name="hint_enter_stock">0</string>
 </resources>
 

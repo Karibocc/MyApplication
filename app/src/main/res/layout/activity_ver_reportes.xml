@@ -1,6 +1,80 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-             android:layout_width="match_parent"
-             android:layout_height="match_parent">
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/layoutVerReportes"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/white"
+    android:orientation="vertical"
+    android:padding="24dp"
+    tools:context=".activities.VerReportesActivity">
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+    <!-- Título principal -->
+    <TextView
+        android:id="@+id/tvTituloReportes"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="📊 Reporte General del Sistema"
+        android:textSize="22sp"
+        android:textStyle="bold"
+        android:textColor="@color/colorPrimary"
+        android:gravity="center"
+        android:layout_marginBottom="20dp" />
+
+    <!-- Sección de resumen -->
+    <androidx.cardview.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="20dp"
+        app:cardCornerRadius="8dp"
+        app:cardElevation="4dp"
+        app:cardBackgroundColor="@color/white">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <TextView
+                android:id="@+id/tvTotalUsuarios"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Total de usuarios registrados: 0"
+                android:textColor="@color/colorPrimary"
+                android:textSize="18sp"
+                android:layout_marginBottom="10dp" />
+
+            <TextView
+                android:id="@+id/tvTotalProductos"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Total de productos registrados: 0"
+                android:textColor="@color/colorPrimary"
+                android:textSize="18sp"
+                android:layout_marginBottom="10dp" />
+
+            <TextView
+                android:id="@+id/tvTotalCarrito"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Total del carrito: $0.00"
+                android:textColor="@color/colorPrimary"
+                android:textSize="18sp" />
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+
+    <!-- Botón para actualizar los datos -->
+    <Button
+        android:id="@+id/btnActualizarReportes"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Actualizar Reporte"
+        android:textAllCaps="false"
+        android:textColor="@color/white"
+        android:backgroundTint="@color/colorPrimary"
+        android:padding="10dp" />
+
+</LinearLayout>
+

@@ -67,4 +67,26 @@ object SessionManager {
     fun isLoggedIn(context: Context): Boolean {
         return getCurrentUserEmail(context) != null
     }
+
+    // ===================== MÉTODOS NUEVOS PARA COMPATIBILIDAD =====================
+
+    // Alias para getCurrentUserEmail - mantiene compatibilidad
+    fun getUsername(context: Context): String? {
+        return getCurrentUserEmail(context)
+    }
+
+    // Alias para getCurrentUserRole - mantiene compatibilidad
+    fun getUserRole(context: Context): String? {
+        return getCurrentUserRole(context)
+    }
+
+    // Alias para isLoggedIn - mantiene compatibilidad
+    fun isUserLoggedIn(context: Context): Boolean {
+        return isLoggedIn(context)
+    }
+
+    // Método para limpiar sesión (alias de logout)
+    fun clearSession(context: Context) {
+        logout(context)
+    }
 }

@@ -25,20 +25,19 @@ class CarritoAdapter(
         private val btnMinus: ImageButton = itemView.findViewById(R.id.btnMinus)
         private val btnPlus: ImageButton = itemView.findViewById(R.id.btnPlus)
         private val btnDelete: ImageButton = itemView.findViewById(R.id.btnDelete)
+        private val tvSubtotal: TextView = itemView.findViewById(R.id.tvSubtotal)
 
         fun bind(producto: Producto) {
             tvName.text = producto.nombre
             tvPrice.text = "$${"%.2f".format(producto.precio)}"
 
-            // Si tu modelo no tiene campo cantidad, usamos una cantidad base 1
-            val cantidadActual = producto.javaClass.getDeclaredFields()
-                .find { it.name == "cantidad" }
-                ?.let {
-                    it.isAccessible = true
-                    (it.get(producto) as? Int) ?: 1
-                } ?: 1
-
+            // Usa el campo cantidad directamente (sin reflexión)
+            val cantidadActual = if (producto.cantidad > 0) producto.cantidad else 1
             tvQuantity.text = cantidadActual.toString()
+
+            // Calcular y mostrar subtotal
+            val subtotal = producto.precio * cantidadActual
+            tvSubtotal.text = "Subtotal: $${"%.2f".format(subtotal)}"
 
             Glide.with(itemView.context)
                 .load(producto.imagen_path)
@@ -46,7 +45,9 @@ class CarritoAdapter(
                 .into(ivImage)
 
             // Botón eliminar producto
-            btnDelete.setOnClickListener { onDeleteClick(producto) }
+            btnDelete.setOnClickListener {
+                onDeleteClick(producto)
+            }
 
             // Botón restar cantidad
             btnMinus.setOnClickListener {
@@ -54,7 +55,14 @@ class CarritoAdapter(
                 if (currentQuantity > 1) {
                     val newQuantity = currentQuantity - 1
                     tvQuantity.text = newQuantity.toString()
-                    onQuantityChange(producto, newQuantity)
+                    producto.cantidad = newQuantity // ✅ sincroniza el modelo
+                    // Actualizar subtotal
+                    val nuevoSubtotal = producto.precio * newQuantity
+                    tvSubtotal.text = "Subtotal: $${"%.2f".format(nuevoSubtotal)}"
+                    onQuantityChange(producto, newQuantity) // ✅ actualiza en BD y UI
+                } else {
+                    // Si llega a 0, el fragmento manejará la eliminación
+                    onQuantityChange(producto, 0)
                 }
             }
 
@@ -63,6 +71,10 @@ class CarritoAdapter(
                 val currentQuantity = tvQuantity.text.toString().toIntOrNull() ?: 1
                 val newQuantity = currentQuantity + 1
                 tvQuantity.text = newQuantity.toString()
+                producto.cantidad = newQuantity // ✅ sincroniza el modelo
+                // Actualizar subtotal
+                val nuevoSubtotal = producto.precio * newQuantity
+                tvSubtotal.text = "Subtotal: $${"%.2f".format(nuevoSubtotal)}"
                 onQuantityChange(producto, newQuantity)
             }
         }
@@ -80,9 +92,78 @@ class CarritoAdapter(
 
     override fun getItemCount(): Int = productos.size
 
+    /**
+     * Actualiza la lista completa de productos.
+     */
     fun updateProductos(newProductos: List<Producto>) {
         productos.clear()
         productos.addAll(newProductos)
         notifyDataSetChanged()
     }
+
+    /**
+     * 🔹 NUEVO: Método para obtener un producto por su posición
+     */
+    fun getProductoAt(position: Int): Producto? {
+        return if (position in 0 until productos.size) {
+            productos[position]
+        } else {
+            null
+        }
+    }
+
+    /**
+     * 🔹 NUEVO: Método para eliminar un producto específico del carrito
+     */
+    fun eliminarProducto(productoId: Int) {
+        val index = productos.indexOfFirst { it.id == productoId }
+        if (index != -1) {
+            productos.removeAt(index)
+            notifyItemRemoved(index)
+        }
+    }
+
+    /**
+     * 🔹 NUEVO: Método para actualizar la cantidad de un producto específico
+     */
+    fun actualizarCantidad(productoId: Int, nuevaCantidad: Int) {
+        val index = productos.indexOfFirst { it.id == productoId }
+        if (index != -1) {
+            productos[index].cantidad = nuevaCantidad
+            notifyItemChanged(index)
+        }
+    }
+
+    /**
+     * 🔹 NUEVO: Método para calcular el total del carrito
+     */
+    fun calcularTotalCarrito(): Double {
+        return productos.sumOf { it.precio * it.cantidad }
+    }
+
+    /**
+     * 🔹 NUEVO: Método para obtener la cantidad total de productos en el carrito
+     */
+    fun obtenerCantidadTotalProductos(): Int {
+        return productos.sumOf { it.cantidad }
+    }
+
+    /**
+     * 🔹 NUEVO: Método para verificar si el carrito está vacío
+     */
+    fun estaVacio(): Boolean {
+        return productos.isEmpty()
+    }
+
+    /**
+     * 🔹 NUEVO: Método para limpiar todo el carrito
+     */
+    fun limpiarCarrito() {
+        val itemCount = productos.size
+        productos.clear()
+        if (itemCount > 0) {
+            notifyItemRangeRemoved(0, itemCount)
+        }
+    }
 }
+

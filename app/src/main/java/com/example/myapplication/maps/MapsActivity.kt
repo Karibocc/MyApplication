@@ -26,6 +26,9 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.gms.tasks.Task
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 /**
  * Actividad encargada de mostrar un mapa con soporte de geolocalización,
@@ -45,6 +48,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private lateinit var locationRequest: LocationRequest
     private lateinit var locationCallback: LocationCallback
+
+    private val coroutineScope = CoroutineScope(Dispatchers.Main)
 
     // Launcher moderno para activar el GPS sin usar startActivityForResult (deprecated)
     private val enableGpsLauncher = registerForActivityResult(
@@ -165,21 +170,28 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
     // Solicita al usuario activar el GPS si está deshabilitado
     private fun promptEnableGPS() {
-        val request = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 10000L).build()
-        val builder = LocationSettingsRequest.Builder().addLocationRequest(request).setAlwaysShow(true)
-        val client = LocationServices.getSettingsClient(this)
-        val task: Task<LocationSettingsResponse> = client.checkLocationSettings(builder.build())
+        coroutineScope.launch {
+            try {
+                val request = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 10000L).build()
+                val builder = LocationSettingsRequest.Builder().addLocationRequest(request).setAlwaysShow(true)
+                val client = LocationServices.getSettingsClient(this@MapsActivity)
+                val task: Task<LocationSettingsResponse> = client.checkLocationSettings(builder.build())
 
-        task.addOnSuccessListener { startLocationFlow() }
-        task.addOnFailureListener { exception ->
-            if (exception is ResolvableApiException) {
-                try {
-                    val intentRequest = IntentSenderRequest.Builder(exception.resolution.intentSender).build()
-                    enableGpsLauncher.launch(intentRequest)
-                } catch (e: Exception) {
-                    showToast("Error al intentar activar la ubicación")
+                task.addOnSuccessListener { startLocationFlow() }
+                task.addOnFailureListener { exception ->
+                    if (exception is ResolvableApiException) {
+                        try {
+                            val intentRequest = IntentSenderRequest.Builder(exception.resolution.intentSender).build()
+                            enableGpsLauncher.launch(intentRequest)
+                        } catch (e: Exception) {
+                            showToast("Error al intentar activar la ubicación")
+                        }
+                    } else showToast("No se puede activar la ubicación automáticamente")
                 }
-            } else showToast("No se puede activar la ubicación automáticamente")
+            } catch (e: Exception) {
+                Log.e("MapsActivity", "Error en promptEnableGPS: ${e.message}")
+                showToast("Error al verificar configuración de ubicación")
+            }
         }
     }
 
@@ -196,16 +208,23 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     // Obtiene la última ubicación conocida y activa actualizaciones periódicas
     @SuppressLint("MissingPermission")
     private fun startLocationFlow() {
-        fusedLocationClient.lastLocation.addOnSuccessListener { location ->
-            if (location != null) {
-                val currentLatLng = LatLng(location.latitude, location.longitude)
-                animateCamera(currentLatLng, LOCATION_ZOOM)
-                setupLocationUpdates()
-                startLocationUpdates()
-            } else showToast("No se pudo obtener la ubicación actual")
-        }.addOnFailureListener { e ->
-            Log.e("MapsActivity", "Error al obtener ubicación", e)
-            showToast("Error al obtener ubicación: ${e.message ?: "Desconocido"}")
+        coroutineScope.launch {
+            try {
+                fusedLocationClient.lastLocation.addOnSuccessListener { location ->
+                    if (location != null) {
+                        val currentLatLng = LatLng(location.latitude, location.longitude)
+                        animateCamera(currentLatLng, LOCATION_ZOOM)
+                        setupLocationUpdates()
+                        startLocationUpdates()
+                    } else showToast("No se pudo obtener la ubicación actual")
+                }.addOnFailureListener { e ->
+                    Log.e("MapsActivity", "Error al obtener ubicación", e)
+                    showToast("Error al obtener ubicación: ${e.message ?: "Desconocido"}")
+                }
+            } catch (e: Exception) {
+                Log.e("MapsActivity", "Error en startLocationFlow: ${e.message}")
+                showToast("Error al iniciar flujo de ubicación")
+            }
         }
     }
 
@@ -228,11 +247,25 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
     @SuppressLint("MissingPermission")
     private fun startLocationUpdates() {
-        fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, mainLooper)
+        try {
+            fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, mainLooper)
+        } catch (e: SecurityException) {
+            Log.e("MapsActivity", "Error de permisos en startLocationUpdates: ${e.message}")
+            showToast("Error de permisos para actualizaciones de ubicación")
+        } catch (e: Exception) {
+            Log.e("MapsActivity", "Error en startLocationUpdates: ${e.message}")
+            showToast("Error al iniciar actualizaciones de ubicación")
+        }
     }
 
     private fun stopLocationUpdates() {
-        fusedLocationClient.removeLocationUpdates(locationCallback)
+        try {
+            if (::locationCallback.isInitialized) {
+                fusedLocationClient.removeLocationUpdates(locationCallback)
+            }
+        } catch (e: Exception) {
+            Log.e("MapsActivity", "Error al detener actualizaciones: ${e.message}")
+        }
     }
 
     override fun onPause() {
@@ -242,21 +275,60 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
     // ----------------------- UTILIDADES -----------------------
     private fun addMarker(position: LatLng, title: String, description: String? = null, color: Float? = null) {
-        MarkerOptions().apply {
-            this.position(position)
-            this.title(title)
-            description?.let { snippet(it) }
-            color?.let { icon(BitmapDescriptorFactory.defaultMarker(it)) }
-        }.also { mMap.addMarker(it) }
+        try {
+            MarkerOptions().apply {
+                this.position(position)
+                this.title(title)
+                description?.let { snippet(it) }
+                color?.let { icon(BitmapDescriptorFactory.defaultMarker(it)) }
+            }.also { mMap.addMarker(it) }
+        } catch (e: Exception) {
+            Log.e("MapsActivity", "Error al agregar marcador: ${e.message}")
+        }
     }
 
     private fun animateCamera(latLng: LatLng, zoom: Float? = null) {
-        zoom?.let { mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, it)) }
-            ?: mMap.animateCamera(CameraUpdateFactory.newLatLng(latLng))
+        try {
+            zoom?.let { mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, it)) }
+                ?: mMap.animateCamera(CameraUpdateFactory.newLatLng(latLng))
+        } catch (e: Exception) {
+            Log.e("MapsActivity", "Error al animar cámara: ${e.message}")
+        }
     }
 
     private fun showToast(message: String) {
-        Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+        try {
+            Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+        } catch (e: Exception) {
+            Log.e("MapsActivity", "Error mostrando toast: ${e.message}")
+        }
+    }
+
+    /**
+     * 🔹 NUEVO: Método para guardar ubicación en base de datos si es necesario
+     */
+    private fun guardarUbicacionEnDB(latLng: LatLng, titulo: String) {
+        // Aquí podrías integrar con DatabaseHelper si necesitas guardar ubicaciones
+        // Por ejemplo: dbHelper.insertarUbicacion(latLng.latitude, latLng.longitude, titulo)
+        Log.d("MapsActivity", "Ubicación guardada: $titulo - Lat: ${latLng.latitude}, Lng: ${latLng.longitude}")
+    }
+
+    /**
+     * 🔹 NUEVO: Método para limpiar todos los marcadores del mapa
+     */
+    private fun limpiarMarcadores() {
+        try {
+            mMap.clear()
+        } catch (e: Exception) {
+            Log.e("MapsActivity", "Error limpiando marcadores: ${e.message}")
+        }
+    }
+
+    /**
+     * 🔹 NUEVO: Método para obtener la ubicación actual del mapa
+     */
+    private fun obtenerUbicacionActualMapa(): LatLng {
+        return mMap.cameraPosition.target
     }
 
     // Manejo del resultado de la solicitud de permisos
@@ -266,6 +338,14 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
             if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)
                 enableLocationFeatures()
             else showToast("Permiso de ubicación denegado")
+        }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        stopLocationUpdates()
+        coroutineScope.launch {
+            // Limpiar recursos si es necesario
         }
     }
 }

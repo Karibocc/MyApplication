@@ -98,7 +98,7 @@ class CarritoFragment : Fragment() {
     }
 
     /**
-     * Actualiza la cantidad en la BD y en la lista local (sin romper la lógica existente).
+     * Actualiza la cantidad en la BD y en la lista local.
      */
     private fun actualizarCantidad(producto: Producto, nuevaCantidad: Int) {
         val stockDisponible = db.obtenerStockProducto(producto.id)
@@ -143,7 +143,6 @@ class CarritoFragment : Fragment() {
 
     /**
      * Convierte un Cursor (resultado de obtenerCarrito) en una lista de Producto.
-     * Incluye imagen_path, stock y cantidad sincronizados.
      */
     private fun cursorToProductoList(cursor: Cursor): List<Producto> {
         val productos = mutableListOf<Producto>()
@@ -165,7 +164,7 @@ class CarritoFragment : Fragment() {
                         precio = precio,
                         imagen_path = imagen,
                         stock = stock,
-                        cantidad = cantidad // ✅ sincroniza con BD
+                        cantidad = cantidad
                     )
                 )
             } while (cursor.moveToNext())
