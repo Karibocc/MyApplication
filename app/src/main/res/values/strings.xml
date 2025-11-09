@@ -81,5 +81,7 @@
     <string name="hint_enter_description">Ingresa una descripción</string>
     <string name="hint_enter_price">0.00</string>
     <string name="hint_enter_stock">0</string>
+    <string name="nombre_de_usuario">Nombre de usuario</string>
+    <string name="rol">Rol</string>
 </resources>
 

@@ -1,23 +1,106 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:orientation="vertical"
-    android:padding="16dp"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".activities.GestionarUsuariosActivity">
+    android:orientation="vertical"
+    android:padding="20dp"
+    android:background="@android:color/white">
 
-    <Button
-        android:id="@+id/btnAgregarUsuario"
-        android:layout_width="wrap_content"
+    <!-- Header con título -->
+    <TextView
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Agregar Usuario"
-        android:layout_gravity="end"
-        android:layout_marginBottom="16dp"/>
+        android:text="Gestión de Usuarios"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:textColor="@color/colorPrimary"
+        android:gravity="center"
+        android:layout_marginBottom="24dp" />
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/lvUsuarios"
+    <!-- Tarjeta de acciones principales -->
+    <com.google.android.material.card.MaterialCardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="4dp"
+        app:cardBackgroundColor="@color/colorPrimaryLight">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="16dp"
+            android:weightSum="2">
+
+            <!-- Botón Agregar Usuario -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnAgregarUsuario"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginEnd="8dp"
+                android:text="Agregar Usuario"
+                android:textColor="@android:color/white"
+                android:backgroundTint="@color/colorPrimary"
+                android:icon="@android:drawable/ic_input_add"
+                app:iconGravity="textStart"
+                style="@style/Widget.Material3.Button.OutlinedButton" />
+
+            <!-- Botón Actualizar Lista -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnActualizarLista"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="8dp"
+                android:text="Actualizar"
+                android:textColor="@color/colorPrimary"
+                android:backgroundTint="@android:color/transparent"
+                android:icon="@android:drawable/ic_menu_rotate"
+                app:iconGravity="textStart"
+                app:strokeColor="@color/colorPrimary"
+                app:strokeWidth="1dp"
+                style="@style/Widget.Material3.Button.OutlinedButton" />
+
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
+
+    <!-- Sección de lista de usuarios -->
+    <com.google.android.material.card.MaterialCardView
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1"/>
+        android:layout_weight="1"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="2dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
+
+            <!-- Header de la lista -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Usuarios Registrados"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="@android:color/black"
+                android:padding="16dp"
+                android:background="@color/colorPrimaryLight" />
+
+            <!-- Lista de usuarios -->
+            <ListView
+                android:id="@+id/lvUsuarios"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:padding="8dp"
+                android:divider="@android:color/transparent"
+                android:dividerHeight="8dp" />
+
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
+
 </LinearLayout>

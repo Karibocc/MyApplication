@@ -16,6 +16,8 @@ data class Usuario(
     val password: String,
     val salt: String = "",
     val rol: String,
+    val email: String? = null,
+    val activo: Boolean = true,
     val isAdmin: Boolean = false
 ) {
     fun isValid(): Boolean {
@@ -260,6 +262,108 @@ data class Usuario(
                 dbHelper.obtenerCantidadUsuarios()
             } catch (e: Exception) {
                 Log.e("Usuario", "Error obteniendo cantidad de usuarios: ${e.message}")
+                0
+            }
+        }
+
+        // ===================== NUEVO: ACTUALIZAR ROL DE USUARIO =====================
+        fun actualizarRolUsuario(context: Context, username: String, nuevoRol: String): Boolean {
+            val dbHelper = DatabaseHelper(context)
+            return try {
+                Log.d("ACTUALIZAR_ROL", "🔄 Actualizando rol de usuario: $username a $nuevoRol")
+                val resultado = dbHelper.actualizarRolUsuario(username, nuevoRol)
+
+                if (resultado > 0) {
+                    Log.i("ACTUALIZAR_ROL", "✅ Rol actualizado exitosamente para: $username")
+                    true
+                } else {
+                    Log.e("ACTUALIZAR_ROL", "❌ No se pudo actualizar el rol para: $username")
+                    false
+                }
+            } catch (e: Exception) {
+                Log.e("ACTUALIZAR_ROL", "💥 Error actualizando rol: ${e.message}", e)
+                false
+            }
+        }
+
+        // ===================== NUEVO: ELIMINAR USUARIO CON LOGS =====================
+        fun eliminarUsuarioConLogs(context: Context, username: String): Boolean {
+            val dbHelper = DatabaseHelper(context)
+            return try {
+                Log.d("ELIMINAR_USUARIO", "🗑️ Intentando eliminar usuario: $username")
+
+                // Verificar que el usuario existe antes de eliminar
+                if (!usuarioExiste(context, username)) {
+                    Log.e("ELIMINAR_USUARIO", "❌ Usuario no existe: $username")
+                    return false
+                }
+
+                val resultado = dbHelper.eliminarUsuario(username)
+
+                if (resultado > 0) {
+                    Log.i("ELIMINAR_USUARIO", "✅ Usuario eliminado exitosamente: $username")
+                    true
+                } else {
+                    Log.e("ELIMINAR_USUARIO", "❌ No se pudo eliminar usuario: $username")
+                    false
+                }
+            } catch (e: Exception) {
+                Log.e("ELIMINAR_USUARIO", "💥 Error eliminando usuario: ${e.message}", e)
+                false
+            }
+        }
+
+        // ===================== NUEVO: OBTENER USUARIOS POR ROL =====================
+        fun obtenerUsuariosPorRol(context: Context, rol: String): List<Usuario> {
+            val dbHelper = DatabaseHelper(context)
+            val usuarios = mutableListOf<Usuario>()
+            try {
+                val cursor = dbHelper.obtenerUsuariosPorRol(rol)
+                cursor?.use { c ->
+                    val idIndex = c.getColumnIndex(DatabaseHelper.COLUMN_USUARIO_ID)
+                    val usernameIndex = c.getColumnIndex(DatabaseHelper.COLUMN_USERNAME)
+                    val rolIndex = c.getColumnIndex(DatabaseHelper.COLUMN_ROL)
+
+                    while (c.moveToNext()) {
+                        val id = if (idIndex >= 0) c.getInt(idIndex) else 0
+                        val username = if (usernameIndex >= 0) c.getString(usernameIndex) else ""
+                        val usuarioRol = if (rolIndex >= 0) c.getString(rolIndex) else rol
+
+                        if (username.isNotBlank()) {
+                            usuarios.add(
+                                Usuario(
+                                    id = id,
+                                    username = username,
+                                    password = "",
+                                    rol = usuarioRol,
+                                    isAdmin = usuarioRol.equals("admin", ignoreCase = true)
+                                )
+                            )
+                        }
+                    }
+                }
+                Log.d("OBTENER_USUARIOS_ROL", "✅ Usuarios con rol '$rol': ${usuarios.size}")
+            } catch (e: Exception) {
+                Log.e("OBTENER_USUARIOS_ROL", "❌ Error obteniendo usuarios por rol: ${e.message}")
+            }
+            return usuarios
+        }
+
+        // ===================== NUEVO: VERIFICAR SI USUARIO ES ADMIN =====================
+        fun esUsuarioAdmin(context: Context, username: String): Boolean {
+            val rol = obtenerRol(context, username)
+            return rol.equals("admin", ignoreCase = true)
+        }
+
+        // ===================== NUEVO: CONTAR USUARIOS POR ROL =====================
+        fun contarUsuariosPorRol(context: Context, rol: String): Int {
+            val dbHelper = DatabaseHelper(context)
+            return try {
+                val cantidad = dbHelper.contarUsuariosPorRol(rol)
+                Log.d("CONTAR_USUARIOS", "👥 Usuarios con rol '$rol': $cantidad")
+                cantidad
+            } catch (e: Exception) {
+                Log.e("CONTAR_USUARIOS", "❌ Error contando usuarios por rol: ${e.message}")
                 0
             }
         }

@@ -4,8 +4,7 @@ import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ArrayAdapter
-import android.widget.TextView
+import android.widget.*
 import com.example.myapplication.R
 import com.example.myapplication.models.Usuario
 
@@ -14,7 +13,10 @@ import com.example.myapplication.models.Usuario
  */
 class UsuarioAdapter(
     context: Context,
-    private val usuarios: MutableList<Usuario>
+    private val usuarios: MutableList<Usuario>,
+    private val onEditarClickListener: (Usuario, Int) -> Unit = { _, _ -> },
+    private val onEliminarClickListener: (Usuario, Int) -> Unit = { _, _ -> },
+    private val onCambiarRolClickListener: (Usuario, Int) -> Unit = { _, _ -> }
 ) : ArrayAdapter<Usuario>(context, 0, usuarios) {
 
     override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
@@ -25,10 +27,30 @@ class UsuarioAdapter(
 
         val tvUsername = itemView.findViewById<TextView>(R.id.tvUsername)
         val tvRol = itemView.findViewById<TextView>(R.id.tvRol)
+        val tvEmail = itemView.findViewById<TextView>(R.id.tvEmail)
+        val btnEditar = itemView.findViewById<Button>(R.id.btnEditar)
+        val btnEliminar = itemView.findViewById<Button>(R.id.btnEliminar)
+        val btnCambiarRol = itemView.findViewById<Button>(R.id.btnCambiarRol)
 
-        tvUsername.text = usuario.username
-        // Usamos replaceFirstChar para compatibilidad con versiones modernas
-        tvRol.text = usuario.rol.replaceFirstChar { it.uppercase() }
+        // Configurar los textos
+        tvUsername.text = "Usuario: ${usuario.username}"
+        tvRol.text = "Rol: ${usuario.rol.replaceFirstChar { it.uppercase() }}"
+
+        // Mostrar email si está disponible
+        tvEmail.text = "Email: ${usuario.email ?: usuario.username}"
+
+        // Configurar listeners de los botones
+        btnEditar.setOnClickListener {
+            onEditarClickListener(usuario, position)
+        }
+
+        btnEliminar.setOnClickListener {
+            onEliminarClickListener(usuario, position)
+        }
+
+        btnCambiarRol.setOnClickListener {
+            onCambiarRolClickListener(usuario, position)
+        }
 
         return itemView
     }
@@ -124,5 +146,26 @@ class UsuarioAdapter(
      */
     fun obtenerRolesUnicos(): List<String> {
         return usuarios.map { it.rol }.distinct()
+    }
+
+    /**
+     * 🔹 NUEVO: Método para buscar usuarios por nombre
+     */
+    fun buscarUsuarios(query: String): List<Usuario> {
+        return if (query.isBlank()) {
+            usuarios
+        } else {
+            usuarios.filter {
+                it.username.contains(query, ignoreCase = true) ||
+                        (it.email?.contains(query, ignoreCase = true) == true)
+            }
+        }
+    }
+
+    /**
+     * 🔹 NUEVO: Método para obtener la lista actual de usuarios
+     */
+    fun obtenerListaActual(): List<Usuario> {
+        return usuarios.toList()
     }
 }

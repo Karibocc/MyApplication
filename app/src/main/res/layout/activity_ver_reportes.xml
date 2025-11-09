@@ -5,76 +5,225 @@
     android:id="@+id/layoutVerReportes"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/white"
+    android:background="#f8f9fa"
     android:orientation="vertical"
-    android:padding="24dp"
+    android:padding="20dp"
     tools:context=".activities.VerReportesActivity">
 
-    <!-- Título principal -->
-    <TextView
-        android:id="@+id/tvTituloReportes"
+    <!-- Header con título -->
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="📊 Reporte General del Sistema"
-        android:textSize="22sp"
-        android:textStyle="bold"
-        android:textColor="@color/colorPrimary"
+        android:orientation="vertical"
         android:gravity="center"
-        android:layout_marginBottom="20dp" />
+        android:layout_marginBottom="24dp">
 
-    <!-- Sección de resumen -->
-    <androidx.cardview.widget.CardView
+        <TextView
+            android:id="@+id/tvTituloReportes"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="📊 Reportes del Sistema"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:textColor="#2b2d42"
+            android:gravity="center"
+            android:layout_marginBottom="8dp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Estadísticas generales y métricas del sistema"
+            android:textSize="14sp"
+            android:textColor="#6c757d"
+            android:gravity="center" />
+
+    </LinearLayout>
+
+    <!-- Tarjeta de métricas principales -->
+    <com.google.android.material.card.MaterialCardView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="20dp"
-        app:cardCornerRadius="8dp"
+        app:cardCornerRadius="16dp"
         app:cardElevation="4dp"
-        app:cardBackgroundColor="@color/white">
+        app:cardBackgroundColor="@android:color/white">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="16dp">
+            android:padding="20dp">
 
-            <TextView
-                android:id="@+id/tvTotalUsuarios"
+            <!-- Header de la tarjeta -->
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Total de usuarios registrados: 0"
-                android:textColor="@color/colorPrimary"
-                android:textSize="18sp"
-                android:layout_marginBottom="10dp" />
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="16dp">
 
-            <TextView
-                android:id="@+id/tvTotalProductos"
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@android:drawable/ic_menu_info_details"
+                    app:tint="#4361ee"
+                    android:layout_marginEnd="12dp" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Resumen General"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:textColor="#2b2d42" />
+
+            </LinearLayout>
+
+            <!-- Métrica 1: Usuarios -->
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Total de productos registrados: 0"
-                android:textColor="@color/colorPrimary"
-                android:textSize="18sp"
-                android:layout_marginBottom="10dp" />
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="16dp"
+                android:padding="12dp"
+                android:background="#e3f2fd">
 
-            <TextView
-                android:id="@+id/tvTotalCarrito"
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:src="@android:drawable/ic_menu_my_calendar"
+                    app:tint="#2196F3"
+                    android:layout_marginEnd="12dp" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Usuarios Registrados"
+                    android:textSize="14sp"
+                    android:textColor="#495057" />
+
+                <TextView
+                    android:id="@+id/tvTotalUsuarios"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="0"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:textColor="#2196F3"
+                    android:background="@android:color/white"
+                    android:paddingHorizontal="12dp"
+                    android:paddingVertical="6dp" />
+
+            </LinearLayout>
+
+            <!-- Métrica 2: Productos -->
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Total del carrito: $0.00"
-                android:textColor="@color/colorPrimary"
-                android:textSize="18sp" />
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="16dp"
+                android:padding="12dp"
+                android:background="#e8f5e8">
+
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:src="@android:drawable/ic_menu_agenda"
+                    app:tint="#4CAF50"
+                    android:layout_marginEnd="12dp" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Productos Registrados"
+                    android:textSize="14sp"
+                    android:textColor="#495057" />
+
+                <TextView
+                    android:id="@+id/tvTotalProductos"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="0"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:textColor="#4CAF50"
+                    android:background="@android:color/white"
+                    android:paddingHorizontal="12dp"
+                    android:paddingVertical="6dp" />
+
+            </LinearLayout>
+
+            <!-- Métrica 3: Carrito -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:padding="12dp"
+                android:background="#fff3e0">
+
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:src="@android:drawable/ic_menu_save"
+                    app:tint="#FF9800"
+                    android:layout_marginEnd="12dp" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Total del Carrito"
+                    android:textSize="14sp"
+                    android:textColor="#495057" />
+
+                <TextView
+                    android:id="@+id/tvTotalCarrito"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="$0.00"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:textColor="#FF9800"
+                    android:background="@android:color/white"
+                    android:paddingHorizontal="12dp"
+                    android:paddingVertical="6dp" />
+
+            </LinearLayout>
+
         </LinearLayout>
-    </androidx.cardview.widget.CardView>
 
-    <!-- Botón para actualizar los datos -->
-    <Button
+    </com.google.android.material.card.MaterialCardView>
+
+    <!-- Botón de acción CORREGIDO -->
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/btnActualizarReportes"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="56dp"
         android:text="Actualizar Reporte"
-        android:textAllCaps="false"
-        android:textColor="@color/white"
-        android:backgroundTint="@color/colorPrimary"
-        android:padding="10dp" />
+        android:textSize="16sp"
+        android:textColor="@android:color/white"
+        android:backgroundTint="#4361ee"
+        app:cornerRadius="12dp"
+        app:icon="@android:drawable/ic_popup_sync"
+        app:iconGravity="textStart"
+        app:iconPadding="8dp"
+        android:paddingVertical="12dp" />
+
+    <!-- Información adicional -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Los datos se actualizan automáticamente al abrir esta pantalla"
+        android:textSize="12sp"
+        android:textColor="#adb5bd"
+        android:gravity="center"
+        android:layout_marginTop="12dp"
+        android:padding="8dp" />
 
 </LinearLayout>
-

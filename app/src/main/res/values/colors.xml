@@ -19,4 +19,9 @@
     <color name="background">#F8F9FA</color>
     <color name="textSecondary">#757575</color>
 
+
+    <color name="colorPrimaryDark">#1976D2</color>
+    <color name="colorPrimaryLight">#E3F2FD</color>
+    <color name="colorAccent">#FF4081</color>
+
 </resources>

@@ -1,8 +1,10 @@
 package com.example.myapplication.activities
 
 import android.os.Bundle
+import android.util.Log
 import android.widget.Button
 import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.myapplication.R
 import com.example.myapplication.database.DatabaseHelper
@@ -22,9 +24,15 @@ class VerReportesActivity : AppCompatActivity() {
 
     private val coroutineScope = CoroutineScope(Dispatchers.Main)
 
+    companion object {
+        private const val TAG = "VerReportesActivity"
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_ver_reportes)
+
+        Log.d(TAG, "📊 Iniciando VerReportesActivity")
 
         // Inicializar la base de datos
         dbHelper = DatabaseHelper(this)
@@ -35,11 +43,25 @@ class VerReportesActivity : AppCompatActivity() {
         tvTotalCarrito = findViewById(R.id.tvTotalCarrito)
         btnActualizarReportes = findViewById(R.id.btnActualizarReportes)
 
-        // Cargar los datos al iniciar la actividad
-        actualizarDatos()
+        // Verificar si recibimos datos del AdminActivity
+        val totalUsuariosIntent = intent.getIntExtra("totalUsuarios", -1)
+        val totalProductosIntent = intent.getIntExtra("totalProductos", -1)
+        val totalCarritoIntent = intent.getDoubleExtra("totalCarrito", -1.0)
+
+        if (totalUsuariosIntent != -1) {
+            // Usar datos del intent
+            tvTotalUsuarios.text = "Total de usuarios registrados: $totalUsuariosIntent"
+            tvTotalProductos.text = "Total de productos registrados: $totalProductosIntent"
+            tvTotalCarrito.text = "Total del carrito: $${"%.2f".format(totalCarritoIntent)}"
+            Log.d(TAG, "✅ Datos cargados desde intent")
+        } else {
+            // Cargar desde base de datos
+            actualizarDatos()
+        }
 
         // Botón para refrescar los reportes manualmente
         btnActualizarReportes.setOnClickListener {
+            Log.d(TAG, "🔄 Botón Actualizar presionado")
             actualizarDatos()
         }
     }
@@ -53,6 +75,8 @@ class VerReportesActivity : AppCompatActivity() {
 
         coroutineScope.launch {
             try {
+                Log.d(TAG, "🔄 Iniciando actualización de datos...")
+
                 val totalUsuarios = withContext(Dispatchers.IO) {
                     dbHelper.obtenerCantidadUsuarios()
                 }
@@ -65,15 +89,24 @@ class VerReportesActivity : AppCompatActivity() {
                     dbHelper.calcularTotalCarrito()
                 }
 
+                Log.d(TAG, "📊 Datos obtenidos - Usuarios: $totalUsuarios, Productos: $totalProductos, Carrito: $totalCarrito")
+
+                // Actualizar la interfaz de usuario
                 tvTotalUsuarios.text = "Total de usuarios registrados: $totalUsuarios"
                 tvTotalProductos.text = "Total de productos registrados: $totalProductos"
                 tvTotalCarrito.text = "Total del carrito: $${"%.2f".format(totalCarrito)}"
 
+                Toast.makeText(this@VerReportesActivity, "✅ Reportes actualizados", Toast.LENGTH_SHORT).show()
+
             } catch (e: Exception) {
+                Log.e(TAG, "❌ ERROR actualizando datos: ${e.message}", e)
+
                 // Manejo de errores
-                tvTotalUsuarios.text = "Error cargando usuarios"
+                tvTotalUsuarios.text = "Error cargando usuarios: ${e.message}"
                 tvTotalProductos.text = "Error cargando productos"
                 tvTotalCarrito.text = "Error calculando carrito"
+
+                Toast.makeText(this@VerReportesActivity, "❌ Error actualizando reportes", Toast.LENGTH_LONG).show()
             } finally {
                 btnActualizarReportes.isEnabled = true
                 btnActualizarReportes.text = "Actualizar Reportes"
@@ -81,48 +114,16 @@ class VerReportesActivity : AppCompatActivity() {
         }
     }
 
-    /**
-     * 🔹 NUEVO: Método para obtener estadísticas adicionales
-     */
-    private fun cargarEstadisticasAdicionales() {
-        coroutineScope.launch {
-            try {
-                val cantidadProductosEnCarrito = withContext(Dispatchers.IO) {
-                    dbHelper.obtenerCantidadProductosEnCarrito()
-                }
-
-                // Puedes agregar más TextView para mostrar estas estadísticas
-                // Por ejemplo:
-                // tvProductosEnCarrito.text = "Productos en carrito: $cantidadProductosEnCarrito"
-
-            } catch (e: Exception) {
-                // Manejar error silenciosamente o mostrar en log
-            }
-        }
-    }
-
-    /**
-     * 🔹 NUEVO: Método para formatear números grandes
-     */
-    private fun formatearNumero(numero: Int): String {
-        return when {
-            numero >= 1_000_000 -> "${"%.1f".format(numero / 1_000_000.0)}M"
-            numero >= 1_000 -> "${"%.1f".format(numero / 1_000.0)}K"
-            else -> numero.toString()
-        }
-    }
-
-    /**
-     * 🔹 NUEVO: Método para actualizar datos cuando la actividad se reanuda
-     */
     override fun onResume() {
         super.onResume()
+        Log.d(TAG, "📱 onResume - Actualizando datos")
         // Actualizar datos cuando el usuario vuelve a esta actividad
         actualizarDatos()
     }
 
     override fun onDestroy() {
         super.onDestroy()
+        Log.d(TAG, "💀 onDestroy - Cerrando conexión")
         // Cerrar la conexión de la base de datos
         dbHelper.close()
     }
