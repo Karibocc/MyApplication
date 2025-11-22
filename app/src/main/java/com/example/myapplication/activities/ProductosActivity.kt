@@ -167,12 +167,12 @@ class ProductosActivity : AppCompatActivity() {
                 do {
                     try {
                         val producto = Producto(
-                            id = getInt(getColumnIndexOrThrow(DatabaseHelper.COLUMN_ID)),
-                            nombre = getString(getColumnIndexOrThrow(DatabaseHelper.COLUMN_NOMBRE)),
-                            descripcion = getString(getColumnIndexOrThrow(DatabaseHelper.COLUMN_DESCRIPCION)),
-                            precio = getDouble(getColumnIndexOrThrow(DatabaseHelper.COLUMN_PRECIO)),
-                            imagen_path = getString(getColumnIndexOrThrow(DatabaseHelper.COLUMN_IMAGEN_PATH)) ?: "",
-                            stock = getInt(getColumnIndexOrThrow(DatabaseHelper.COLUMN_STOCK))
+                            id = getInt(getColumnIndexOrThrow("id")),
+                            nombre = getString(getColumnIndexOrThrow("nombre")),
+                            descripcion = getString(getColumnIndexOrThrow("descripcion")),
+                            precio = getDouble(getColumnIndexOrThrow("precio")),
+                            imagen_path = getString(getColumnIndexOrThrow("imagen_path")) ?: "",
+                            stock = getInt(getColumnIndexOrThrow("stock"))
                         )
                         productoList.add(producto)
                     } catch (e: Exception) {
