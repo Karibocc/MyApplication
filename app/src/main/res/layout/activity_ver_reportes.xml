@@ -1,229 +1,236 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/layoutVerReportes"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:fillViewport="true"
     android:background="#f8f9fa"
-    android:orientation="vertical"
-    android:padding="20dp"
     tools:context=".activities.VerReportesActivity">
 
-    <!-- Header con título -->
     <LinearLayout
+        android:id="@+id/layoutVerReportes"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:gravity="center"
-        android:layout_marginBottom="24dp">
+        android:padding="16dp">
 
-        <TextView
-            android:id="@+id/tvTituloReportes"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="📊 Reportes del Sistema"
-            android:textSize="24sp"
-            android:textStyle="bold"
-            android:textColor="#2b2d42"
-            android:gravity="center"
-            android:layout_marginBottom="8dp" />
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Estadísticas generales y métricas del sistema"
-            android:textSize="14sp"
-            android:textColor="#6c757d"
-            android:gravity="center" />
-
-    </LinearLayout>
-
-    <!-- Tarjeta de métricas principales -->
-    <com.google.android.material.card.MaterialCardView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="20dp"
-        app:cardCornerRadius="16dp"
-        app:cardElevation="4dp"
-        app:cardBackgroundColor="@android:color/white">
-
+        <!-- Header con título -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="20dp">
+            android:gravity="center"
+            android:layout_marginBottom="20dp">
 
-            <!-- Header de la tarjeta -->
-            <LinearLayout
+            <TextView
+                android:id="@+id/tvTituloReportes"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:layout_marginBottom="16dp">
+                android:text="📊 Reportes del Sistema"
+                android:textSize="22sp"
+                android:textStyle="bold"
+                android:textColor="#2b2d42"
+                android:gravity="center"
+                android:layout_marginBottom="4dp" />
 
-                <ImageView
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:src="@android:drawable/ic_menu_info_details"
-                    app:tint="#4361ee"
-                    android:layout_marginEnd="12dp" />
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Resumen General"
-                    android:textSize="16sp"
-                    android:textStyle="bold"
-                    android:textColor="#2b2d42" />
-
-            </LinearLayout>
-
-            <!-- Métrica 1: Usuarios -->
-            <LinearLayout
+            <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:layout_marginBottom="16dp"
-                android:padding="12dp"
-                android:background="#e3f2fd">
-
-                <ImageView
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-                    android:src="@android:drawable/ic_menu_my_calendar"
-                    app:tint="#2196F3"
-                    android:layout_marginEnd="12dp" />
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Usuarios Registrados"
-                    android:textSize="14sp"
-                    android:textColor="#495057" />
-
-                <TextView
-                    android:id="@+id/tvTotalUsuarios"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="0"
-                    android:textSize="16sp"
-                    android:textStyle="bold"
-                    android:textColor="#2196F3"
-                    android:background="@android:color/white"
-                    android:paddingHorizontal="12dp"
-                    android:paddingVertical="6dp" />
-
-            </LinearLayout>
-
-            <!-- Métrica 2: Productos -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:layout_marginBottom="16dp"
-                android:padding="12dp"
-                android:background="#e8f5e8">
-
-                <ImageView
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-                    android:src="@android:drawable/ic_menu_agenda"
-                    app:tint="#4CAF50"
-                    android:layout_marginEnd="12dp" />
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Productos Registrados"
-                    android:textSize="14sp"
-                    android:textColor="#495057" />
-
-                <TextView
-                    android:id="@+id/tvTotalProductos"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="0"
-                    android:textSize="16sp"
-                    android:textStyle="bold"
-                    android:textColor="#4CAF50"
-                    android:background="@android:color/white"
-                    android:paddingHorizontal="12dp"
-                    android:paddingVertical="6dp" />
-
-            </LinearLayout>
-
-            <!-- Métrica 3: Carrito -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:padding="12dp"
-                android:background="#fff3e0">
-
-                <ImageView
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-                    android:src="@android:drawable/ic_menu_save"
-                    app:tint="#FF9800"
-                    android:layout_marginEnd="12dp" />
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Total del Carrito"
-                    android:textSize="14sp"
-                    android:textColor="#495057" />
-
-                <TextView
-                    android:id="@+id/tvTotalCarrito"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="$0.00"
-                    android:textSize="16sp"
-                    android:textStyle="bold"
-                    android:textColor="#FF9800"
-                    android:background="@android:color/white"
-                    android:paddingHorizontal="12dp"
-                    android:paddingVertical="6dp" />
-
-            </LinearLayout>
+                android:text="Estadísticas generales y métricas del sistema"
+                android:textSize="12sp"
+                android:textColor="#6c757d"
+                android:gravity="center" />
 
         </LinearLayout>
 
-    </com.google.android.material.card.MaterialCardView>
+        <!-- Tarjeta de métricas principales -->
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="2dp"
+            app:cardBackgroundColor="@android:color/white">
 
-    <!-- Botón de acción CORREGIDO -->
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/btnActualizarReportes"
-        android:layout_width="match_parent"
-        android:layout_height="56dp"
-        android:text="Actualizar Reporte"
-        android:textSize="16sp"
-        android:textColor="@android:color/white"
-        android:backgroundTint="#4361ee"
-        app:cornerRadius="12dp"
-        app:icon="@android:drawable/ic_popup_sync"
-        app:iconGravity="textStart"
-        app:iconPadding="8dp"
-        android:paddingVertical="12dp" />
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
 
-    <!-- Información adicional -->
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Los datos se actualizan automáticamente al abrir esta pantalla"
-        android:textSize="12sp"
-        android:textColor="#adb5bd"
-        android:gravity="center"
-        android:layout_marginTop="12dp"
-        android:padding="8dp" />
+                <!-- Header de la tarjeta -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="12dp">
 
-</LinearLayout>
+                    <ImageView
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:src="@android:drawable/ic_menu_info_details"
+                        app:tint="#4361ee"
+                        android:layout_marginEnd="8dp" />
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Resumen General"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        android:textColor="#2b2d42" />
+
+                </LinearLayout>
+
+                <!-- Métrica 1: Usuarios -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="12dp"
+                    android:padding="10dp"
+                    android:background="#e3f2fd">
+
+                    <ImageView
+                        android:layout_width="18dp"
+                        android:layout_height="18dp"
+                        android:src="@android:drawable/ic_menu_my_calendar"
+                        app:tint="#2196F3"
+                        android:layout_marginEnd="10dp" />
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Usuarios Registrados"
+                        android:textSize="13sp"
+                        android:textColor="#495057" />
+
+                    <TextView
+                        android:id="@+id/tvTotalUsuarios"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="0"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        android:textColor="#2196F3"
+                        android:background="@android:color/white"
+                        android:paddingHorizontal="10dp"
+                        android:paddingVertical="4dp" />
+
+                </LinearLayout>
+
+                <!-- Métrica 2: Productos -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="12dp"
+                    android:padding="10dp"
+                    android:background="#e8f5e8">
+
+                    <ImageView
+                        android:layout_width="18dp"
+                        android:layout_height="18dp"
+                        android:src="@android:drawable/ic_menu_agenda"
+                        app:tint="#4CAF50"
+                        android:layout_marginEnd="10dp" />
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Productos Registrados"
+                        android:textSize="13sp"
+                        android:textColor="#495057" />
+
+                    <TextView
+                        android:id="@+id/tvTotalProductos"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="0"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        android:textColor="#4CAF50"
+                        android:background="@android:color/white"
+                        android:paddingHorizontal="10dp"
+                        android:paddingVertical="4dp" />
+
+                </LinearLayout>
+
+                <!-- Métrica 3: Carrito -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:padding="10dp"
+                    android:background="#fff3e0">
+
+                    <ImageView
+                        android:layout_width="18dp"
+                        android:layout_height="18dp"
+                        android:src="@android:drawable/ic_menu_save"
+                        app:tint="#FF9800"
+                        android:layout_marginEnd="10dp" />
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Total del Carrito"
+                        android:textSize="13sp"
+                        android:textColor="#495057" />
+
+                    <TextView
+                        android:id="@+id/tvTotalCarrito"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="$0.00"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        android:textColor="#FF9800"
+                        android:background="@android:color/white"
+                        android:paddingHorizontal="10dp"
+                        android:paddingVertical="4dp" />
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Botón de acción -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnActualizarReportes"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:text="Actualizar Reporte"
+            android:textSize="15sp"
+            android:textColor="@android:color/white"
+            android:backgroundTint="#4361ee"
+            app:cornerRadius="10dp"
+            app:icon="@android:drawable/ic_popup_sync"
+            app:iconGravity="textStart"
+            app:iconPadding="6dp"
+            android:paddingVertical="10dp" />
+
+        <!-- Información adicional -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Los datos se actualizan automáticamente al abrir esta pantalla"
+            android:textSize="11sp"
+            android:textColor="#adb5bd"
+            android:gravity="center"
+            android:layout_marginTop="10dp"
+            android:padding="6dp" />
+
+    </LinearLayout>
+
+</ScrollView>
