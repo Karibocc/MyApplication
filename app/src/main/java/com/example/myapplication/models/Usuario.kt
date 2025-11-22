@@ -81,6 +81,17 @@ data class Usuario(
             return registrarUsuario(context, nuevoUsuario)
         }
 
+        // ===================== REGISTRAR USUARIO COMPLETO (CON USERNAME, EMAIL Y ROL) =====================
+        fun registrarUsuarioCompleto(context: Context, username: String, email: String, password: String, rol: String): Boolean {
+            val nuevoUsuario = Usuario(
+                username = username,
+                password = password,
+                rol = rol,
+                email = email
+            )
+            return registrarUsuario(context, nuevoUsuario)
+        }
+
         // ===================== REGISTRAR USUARIO SIN TOAST (PARA CONTROL MANUAL) =====================
         fun registrarUsuarioSilencioso(context: Context, nuevoUsuario: Usuario): Boolean {
             val dbHelper = DatabaseHelper(context)
@@ -266,7 +277,7 @@ data class Usuario(
             }
         }
 
-        // ===================== NUEVO: ACTUALIZAR ROL DE USUARIO =====================
+        // ===================== ACTUALIZAR ROL DE USUARIO =====================
         fun actualizarRolUsuario(context: Context, username: String, nuevoRol: String): Boolean {
             val dbHelper = DatabaseHelper(context)
             return try {
@@ -286,7 +297,7 @@ data class Usuario(
             }
         }
 
-        // ===================== NUEVO: ELIMINAR USUARIO CON LOGS =====================
+        // ===================== ELIMINAR USUARIO CON LOGS =====================
         fun eliminarUsuarioConLogs(context: Context, username: String): Boolean {
             val dbHelper = DatabaseHelper(context)
             return try {
@@ -313,7 +324,7 @@ data class Usuario(
             }
         }
 
-        // ===================== NUEVO: OBTENER USUARIOS POR ROL =====================
+        // ===================== OBTENER USUARIOS POR ROL =====================
         fun obtenerUsuariosPorRol(context: Context, rol: String): List<Usuario> {
             val dbHelper = DatabaseHelper(context)
             val usuarios = mutableListOf<Usuario>()
@@ -349,13 +360,13 @@ data class Usuario(
             return usuarios
         }
 
-        // ===================== NUEVO: VERIFICAR SI USUARIO ES ADMIN =====================
+        // ===================== VERIFICAR SI USUARIO ES ADMIN =====================
         fun esUsuarioAdmin(context: Context, username: String): Boolean {
             val rol = obtenerRol(context, username)
             return rol.equals("admin", ignoreCase = true)
         }
 
-        // ===================== NUEVO: CONTAR USUARIOS POR ROL =====================
+        // ===================== CONTAR USUARIOS POR ROL =====================
         fun contarUsuariosPorRol(context: Context, rol: String): Int {
             val dbHelper = DatabaseHelper(context)
             return try {

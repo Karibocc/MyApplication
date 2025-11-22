@@ -12,10 +12,7 @@ data class Producto(
 
 ) {
 
-    /**
-     * Implementación personalizada de equals().
-     * Dos productos se consideran iguales si tienen el mismo ID.
-     */
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
@@ -26,17 +23,11 @@ data class Producto(
         return true
     }
 
-    /**
-     * Implementación de hashCode() consistente con equals().
-     * Solo usa el ID para el cálculo del hash.
-     */
     override fun hashCode(): Int {
         return id
     }
 
-    /**
-     * Validaciones básicas al crear un producto.
-     */
+
     init {
         require(id >= 0) { "El ID debe ser positivo" }
         require(nombre.isNotBlank()) { "El nombre no puede estar vacío" }
@@ -44,16 +35,12 @@ data class Producto(
         require(cantidad >= 0) { "La cantidad no puede ser negativa" }
     }
 
-    /**
-     * auxiliar para calcular el subtotal del producto en el carrito.
-     */
+
     fun subtotal(): Double {
         return precio * cantidad
     }
 
-    /**
-     * auxiliar para formatear el precio en pesos o dólares.
-     */
+
     fun precioFormateado(): String {
         return "$${"%.2f".format(precio)}"
     }

@@ -33,6 +33,7 @@ class GestionProductoActivity : AppCompatActivity() {
     private lateinit var btnGuardar: Button
     private lateinit var btnEliminar: Button
     private lateinit var ivFoto: ImageView
+    private lateinit var progressBar: ProgressBar
 
     private var esEdicion: Boolean = false
     private var productoId: Int = -1
@@ -45,6 +46,8 @@ class GestionProductoActivity : AppCompatActivity() {
     ) { isGranted ->
         if (isGranted) {
             tomarFotoConCamara()
+        } else {
+            Toast.makeText(this, "Se necesita permiso de cámara para tomar fotos", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -55,7 +58,10 @@ class GestionProductoActivity : AppCompatActivity() {
             currentPhotoPath?.let { path ->
                 imagenSeleccionada = path
                 ivFoto.setImageURI(Uri.parse(path))
+                Toast.makeText(this, "Foto guardada", Toast.LENGTH_SHORT).show()
             }
+        } else {
+            Toast.makeText(this, "No se pudo tomar la foto", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -65,6 +71,7 @@ class GestionProductoActivity : AppCompatActivity() {
         uri?.let {
             imagenSeleccionada = it.toString()
             ivFoto.setImageURI(it)
+            Toast.makeText(this, "Imagen seleccionada", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -87,6 +94,7 @@ class GestionProductoActivity : AppCompatActivity() {
         btnGuardar = findViewById(R.id.btnGuardar)
         btnEliminar = findViewById(R.id.btnEliminar)
         ivFoto = findViewById(R.id.ivFoto)
+        progressBar = findViewById(R.id.progressBar)
     }
 
     private fun setupModo() {
@@ -149,6 +157,7 @@ class GestionProductoActivity : AppCompatActivity() {
             val photoFile: File? = try {
                 createImageFile()
             } catch (ex: IOException) {
+                Toast.makeText(this, "Error al crear archivo de imagen", Toast.LENGTH_SHORT).show()
                 null
             }
 
@@ -162,7 +171,7 @@ class GestionProductoActivity : AppCompatActivity() {
                 takePictureLauncher.launch(photoURI)
             }
         } catch (e: Exception) {
-            Toast.makeText(this, "Error al abrir cámara", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Error al abrir cámara: ${e.message}", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -184,6 +193,8 @@ class GestionProductoActivity : AppCompatActivity() {
     }
 
     private fun cargarProductoParaEditar() {
+        mostrarLoading(true)
+
         coroutineScope.launch {
             try {
                 val producto = withContext(Dispatchers.IO) {
@@ -197,17 +208,24 @@ class GestionProductoActivity : AppCompatActivity() {
                     etStock.setText(it.stock.toString())
 
                     it.imagen_path?.let { imagenPath ->
-                        imagenSeleccionada = imagenPath
-                        try {
-                            ivFoto.setImageURI(Uri.parse(imagenPath))
-                        } catch (e: Exception) {
-                            ivFoto.setImageResource(R.drawable.ic_image_placeholder)
+                        if (imagenPath.isNotEmpty()) {
+                            imagenSeleccionada = imagenPath
+                            try {
+                                ivFoto.setImageURI(Uri.parse(imagenPath))
+                            } catch (e: Exception) {
+                                ivFoto.setImageResource(R.drawable.ic_image_placeholder)
+                            }
                         }
                     }
+                } ?: run {
+                    Toast.makeText(this@GestionProductoActivity, "Producto no encontrado", Toast.LENGTH_SHORT).show()
+                    finish()
                 }
             } catch (e: Exception) {
-                Toast.makeText(this@GestionProductoActivity, "Error cargando producto", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this@GestionProductoActivity, "Error cargando producto: ${e.message}", Toast.LENGTH_SHORT).show()
                 finish()
+            } finally {
+                mostrarLoading(false)
             }
         }
     }
@@ -219,6 +237,8 @@ class GestionProductoActivity : AppCompatActivity() {
         val stock = etStock.text.toString().toIntOrNull()
 
         if (validarFormulario(nombre, descripcion, precio, stock)) {
+            mostrarLoading(true)
+
             coroutineScope.launch {
                 try {
                     val exito = withContext(Dispatchers.IO) {
@@ -245,48 +265,53 @@ class GestionProductoActivity : AppCompatActivity() {
                     }
 
                     if (exito) {
-                        val mensaje = if (esEdicion) "Producto actualizado" else "Producto agregado"
+                        val mensaje = if (esEdicion) "Producto actualizado correctamente" else "Producto agregado correctamente"
                         Toast.makeText(this@GestionProductoActivity, mensaje, Toast.LENGTH_SHORT).show()
                         setResult(RESULT_OK)
                         finish()
                     } else {
-                        Toast.makeText(this@GestionProductoActivity, "Error guardando producto", Toast.LENGTH_SHORT).show()
+                        val mensaje = if (esEdicion) "Error al actualizar producto" else "Error al guardar producto"
+                        Toast.makeText(this@GestionProductoActivity, mensaje, Toast.LENGTH_SHORT).show()
                     }
                 } catch (e: Exception) {
-                    Toast.makeText(this@GestionProductoActivity, "Error guardando producto", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@GestionProductoActivity, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+                } finally {
+                    mostrarLoading(false)
                 }
             }
         }
     }
 
     private fun validarFormulario(nombre: String, descripcion: String, precio: Double?, stock: Int?): Boolean {
+        var esValido = true
+
         if (nombre.isEmpty()) {
             etNombre.error = "Nombre requerido"
-            return false
+            esValido = false
         }
 
         if (descripcion.isEmpty()) {
             etDescripcion.error = "Descripción requerida"
-            return false
+            esValido = false
         }
 
         if (precio == null || precio <= 0) {
             etPrecio.error = "Precio válido requerido"
-            return false
+            esValido = false
         }
 
         if (stock == null || stock < 0) {
             etStock.error = "Stock válido requerido"
-            return false
+            esValido = false
         }
 
-        return true
+        return esValido
     }
 
     private fun mostrarDialogoEliminar() {
         AlertDialog.Builder(this)
             .setTitle("Eliminar Producto")
-            .setMessage("¿Estás seguro de que quieres eliminar este producto?")
+            .setMessage("¿Estás seguro de que quieres eliminar este producto? Esta acción no se puede deshacer.")
             .setPositiveButton("Eliminar") { _, _ ->
                 eliminarProducto()
             }
@@ -295,6 +320,8 @@ class GestionProductoActivity : AppCompatActivity() {
     }
 
     private fun eliminarProducto() {
+        mostrarLoading(true)
+
         coroutineScope.launch {
             try {
                 val eliminado = withContext(Dispatchers.IO) {
@@ -302,16 +329,25 @@ class GestionProductoActivity : AppCompatActivity() {
                 }
 
                 if (eliminado) {
-                    Toast.makeText(this@GestionProductoActivity, "Producto eliminado", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@GestionProductoActivity, "Producto eliminado correctamente", Toast.LENGTH_SHORT).show()
                     setResult(RESULT_OK)
                     finish()
                 } else {
-                    Toast.makeText(this@GestionProductoActivity, "Error eliminando producto", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@GestionProductoActivity, "Error al eliminar producto", Toast.LENGTH_SHORT).show()
                 }
             } catch (e: Exception) {
-                Toast.makeText(this@GestionProductoActivity, "Error eliminando producto", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this@GestionProductoActivity, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+            } finally {
+                mostrarLoading(false)
             }
         }
+    }
+
+    private fun mostrarLoading(mostrar: Boolean) {
+        progressBar.visibility = if (mostrar) View.VISIBLE else View.GONE
+        btnGuardar.isEnabled = !mostrar
+        btnEliminar.isEnabled = !mostrar
+        btnTomarFoto.isEnabled = !mostrar
     }
 
     override fun onSupportNavigateUp(): Boolean {

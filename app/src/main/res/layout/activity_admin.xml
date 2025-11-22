@@ -17,7 +17,7 @@
         <!-- Header sin icono -->
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="123dp"
+            android:layout_height="128dp"
             android:layout_marginBottom="32dp"
             android:gravity="center"
             android:orientation="vertical"
@@ -57,7 +57,7 @@
 
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="409dp"
+                android:layout_height="392dp"
                 android:orientation="vertical"
                 android:padding="8dp">
 

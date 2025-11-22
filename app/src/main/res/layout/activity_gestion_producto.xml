@@ -10,7 +10,7 @@
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
-        <!-- Título -->
+
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -21,7 +21,7 @@
             android:layout_marginBottom="24dp"
             android:textColor="@color/colorPrimary" />
 
-        <!-- Nombre del Producto -->
+
         <EditText
             android:id="@+id/etNombre"
             android:layout_width="match_parent"
@@ -35,7 +35,7 @@
             android:textColor="@color/black"
             android:textColorHint="@color/colorPrimary" />
 
-        <!-- Descripción -->
+
         <EditText
             android:id="@+id/etDescripcion"
             android:layout_width="match_parent"
@@ -50,14 +50,14 @@
             android:textColor="@color/black"
             android:textColorHint="@color/colorPrimary" />
 
-        <!-- Precio y Stock en fila -->
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:layout_marginBottom="16dp">
 
-            <!-- Precio -->
+
             <EditText
                 android:id="@+id/etPrecio"
                 android:layout_width="0dp"
@@ -72,7 +72,7 @@
                 android:textColor="@color/black"
                 android:textColorHint="@color/colorPrimary" />
 
-            <!-- Stock -->
+
             <EditText
                 android:id="@+id/etStock"
                 android:layout_width="0dp"
@@ -89,7 +89,7 @@
 
         </LinearLayout>
 
-        <!-- Botón Tomar Foto -->
+
         <Button
             android:id="@+id/btnTomarFoto"
             android:layout_width="match_parent"
@@ -99,7 +99,7 @@
             android:backgroundTint="@color/colorPrimary"
             android:textColor="@color/white" />
 
-        <!-- ImageView de la Foto -->
+
         <ImageView
             android:id="@+id/ivFoto"
             android:layout_width="match_parent"
@@ -109,7 +109,16 @@
             android:background="@android:color/darker_gray"
             android:contentDescription="Vista previa de la imagen del producto" />
 
-        <!-- Botón Guardar Producto -->
+
+        <ProgressBar
+            android:id="@+id/progressBar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginBottom="16dp"
+            android:visibility="gone" />
+
+
         <Button
             android:id="@+id/btnGuardar"
             android:layout_width="match_parent"
@@ -118,7 +127,7 @@
             android:backgroundTint="@color/colorPrimary"
             android:textColor="@color/white" />
 
-        <!-- Botón Eliminar (solo visible en edición) -->
+
         <Button
             android:id="@+id/btnEliminar"
             android:layout_width="match_parent"

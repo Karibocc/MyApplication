@@ -118,6 +118,14 @@
             android:theme="@style/Theme.MyApplication"
             android:screenOrientation="portrait" />
 
+        <activity
+            android:name=".activities.ProductosActivity"
+            android:exported="false"
+            android:label="Productos"
+            android:parentActivityName=".activities.AdminActivity"
+            android:screenOrientation="portrait" />
+
+
         <!-- Servicios Firebase -->
         <service
             android:name=".services.MyFirebaseMessagingService"

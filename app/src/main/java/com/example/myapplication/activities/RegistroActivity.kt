@@ -3,14 +3,15 @@ package com.example.myapplication.activities
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
-import android.widget.Button
-import android.widget.EditText
-import android.widget.Toast
+import android.view.View
+import android.view.ViewGroup
+import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import com.example.myapplication.R
+import com.example.myapplication.database.DatabaseHelper
 import com.example.myapplication.managers.SessionManager
 import com.example.myapplication.models.Usuario
-import com.google.android.material.switchmaterial.SwitchMaterial
+import com.google.android.material.textfield.TextInputEditText
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 import com.google.firebase.auth.FirebaseAuthUserCollisionException
@@ -26,9 +27,11 @@ import kotlinx.coroutines.tasks.await
 class RegistroActivity : AppCompatActivity() {
 
     private lateinit var btnRegistrar: Button
-    private lateinit var etUsuario: EditText
-    private lateinit var etPassword: EditText
-    private lateinit var switchRol: SwitchMaterial
+    private lateinit var btnCancelar: Button
+    private lateinit var etUsername: TextInputEditText
+    private lateinit var etEmail: TextInputEditText
+    private lateinit var etPassword: TextInputEditText
+    private lateinit var spRol: Spinner
     private lateinit var auth: FirebaseAuth
     private val coroutineScope = CoroutineScope(Dispatchers.Main)
 
@@ -41,212 +44,346 @@ class RegistroActivity : AppCompatActivity() {
         setContentView(R.layout.activity_registro)
 
         auth = Firebase.auth
+        enlazarVistas()
+        configurarSpinner()
+        configurarBotones()
+    }
 
-        btnRegistrar = findViewById(R.id.btnRegistrar)
-        etUsuario = findViewById(R.id.etUsuario)
-        etPassword = findViewById(R.id.etPassword)
-        switchRol = findViewById(R.id.switchRol)
+    private fun enlazarVistas() {
+        try {
+            btnRegistrar = findViewById(R.id.btnGuardar)
+            btnCancelar = findViewById(R.id.btnCancelar)
+            etUsername = findViewById(R.id.etUsername)
+            etEmail = findViewById(R.id.etEmail)
+            etPassword = findViewById(R.id.etPassword)
+            spRol = findViewById(R.id.spRol)
+        } catch (e: Exception) {
+            Log.e(TAG, "Error enlazando vistas", e)
+            Toast.makeText(this, "Error configurando la interfaz", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun configurarSpinner() {
+        try {
+            val roles = arrayOf("Administrador", "Usuario", "Invitado")
+
+            val adapter = object : ArrayAdapter<String>(
+                this,
+                android.R.layout.simple_spinner_item,
+                roles
+            ) {
+                override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
+                    val view = super.getView(position, convertView, parent)
+                    val textView = view.findViewById<TextView>(android.R.id.text1)
+                    textView.setTextColor(getColor(android.R.color.black))
+                    textView.textSize = 16f
+                    return view
+                }
+
+                override fun getDropDownView(position: Int, convertView: View?, parent: ViewGroup): View {
+                    val view = super.getDropDownView(position, convertView, parent)
+                    val textView = view.findViewById<TextView>(android.R.id.text1)
+                    textView.setTextColor(getColor(android.R.color.black))
+                    textView.textSize = 16f
+                    textView.setBackgroundColor(getColor(android.R.color.white))
+                    return view
+                }
+            }
+
+            adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+            spRol.adapter = adapter
+        } catch (e: Exception) {
+            Log.e(TAG, "Error configurando spinner", e)
+        }
+    }
+
+    private fun configurarBotones() {
+        btnCancelar.setOnClickListener {
+            finish()
+        }
 
         btnRegistrar.setOnClickListener {
             registrarUsuario()
         }
     }
 
-    // ==================================================================
-    // MÉTODO PRINCIPAL DE REGISTRO
-    // ==================================================================
-
     private fun registrarUsuario() {
-        val username = etUsuario.text.toString().trim()
-        val password = etPassword.text.toString().trim()
+        try {
+            val username = etUsername.text.toString().trim()
+            val email = etEmail.text.toString().trim()
+            val password = etPassword.text.toString().trim()
+            val rolSeleccionado = spRol.selectedItem as? String ?: "Usuario"
 
-        if (username.isEmpty() || password.isEmpty()) {
-            Toast.makeText(this, "Por favor complete todos los campos", Toast.LENGTH_SHORT).show()
-            return
-        }
+            if (username.isEmpty() || email.isEmpty() || password.isEmpty()) {
+                Toast.makeText(this, "Complete todos los campos", Toast.LENGTH_SHORT).show()
+                return
+            }
 
-        if (password.length < 6) {
-            Toast.makeText(this, "La contraseña debe tener al menos 6 caracteres", Toast.LENGTH_SHORT).show()
-            return
-        }
+            if (password.length < 6) {
+                Toast.makeText(this, "Contraseña debe tener al menos 6 caracteres", Toast.LENGTH_SHORT).show()
+                return
+            }
 
-        if (!Usuario.esEmailValido(username)) {
-            etUsuario.error = "Formato de email invalido"
-            return
-        }
+            if (!Usuario.esEmailValido(email)) {
+                etEmail.error = "Formato de email inválido"
+                return
+            }
 
-        val usernameNormalizado = username.lowercase()
-        val rol = if (switchRol.isChecked) "admin" else "cliente"
+            val emailNormalizado = email.lowercase()
+            val rol = when (rolSeleccionado.toLowerCase()) {
+                "administrador" -> "admin"
+                "usuario" -> "cliente"
+                "invitado" -> "invitado"
+                else -> "cliente"
+            }
 
-        Log.d(TAG, "Intentando registrar usuario: $usernameNormalizado")
+            btnRegistrar.isEnabled = false
+            btnRegistrar.text = "Registrando..."
 
-        btnRegistrar.isEnabled = false
-        btnRegistrar.text = "Registrando..."
+            coroutineScope.launch {
+                try {
+                    Log.d(TAG, "Datos registro: Email=$emailNormalizado, Username=$username, Rol=$rol")
 
-        coroutineScope.launch {
-            try {
-                val usuarioExiste = withContext(Dispatchers.IO) {
-                    Usuario.usuarioExiste(this@RegistroActivity, usernameNormalizado)
-                }
-
-                if (usuarioExiste) {
-                    Log.d(TAG, "Usuario ya existe en SQLite, procediendo a redirigir...")
-                    mostrarExitoYRedirigir(usernameNormalizado, esRegistroNuevo = false)
-                    return@launch
-                }
-
-                Log.d(TAG, "Creando usuario en Firebase...")
-                val authResult = withContext(Dispatchers.IO) {
-                    try {
-                        auth.createUserWithEmailAndPassword(usernameNormalizado, password).await()
-                    } catch (e: Exception) {
-                        throw e
+                    // Verificar si el correo ya existe
+                    val correoExiste = withContext(Dispatchers.IO) {
+                        verificarCorreoExistente(emailNormalizado)
                     }
-                }
 
-                if (authResult.user != null) {
-                    Log.d(TAG, "Usuario creado en Firebase Auth")
+                    if (correoExiste) {
+                        Log.d(TAG, "Correo ya existe en BD, redirigiendo...")
+                        mostrarExitoYRedirigir(emailNormalizado, false)
+                        return@launch
+                    }
 
-                    val registroExitoso = withContext(Dispatchers.IO) {
-                        try {
-                            val resultado = Usuario.registrarUsuarioDesdeStrings(
-                                this@RegistroActivity,
-                                usernameNormalizado,
-                                password,
-                                rol
-                            )
+                    // Registrar en Firebase
+                    Log.d(TAG, "Registrando en Firebase...")
+                    val authResult = withContext(Dispatchers.IO) {
+                        auth.createUserWithEmailAndPassword(emailNormalizado, password).await()
+                    }
 
-                            if (resultado) {
-                                Log.d(TAG, "Metodo principal exitoso")
-                                true
-                            } else {
-                                Log.d(TAG, "Metodo principal fallo, verificando si se guardo...")
-                                val usuarioGuardado = Usuario.obtenerUsuarioPorNombre(this@RegistroActivity, usernameNormalizado)
-                                usuarioGuardado != null
+                    if (authResult.user != null) {
+                        val userId = authResult.user!!.uid
+                        Log.d(TAG, "Usuario registrado en Firebase, ID: $userId")
+
+                        // Registrar en SQLite - FORZAR GUARDADO
+                        Log.d(TAG, "Registrando en SQLite...")
+                        val resultadoSQLite = withContext(Dispatchers.IO) {
+                            guardarUsuarioEnSQLite(username, password, rol, emailNormalizado)
+                        }
+
+                        if (resultadoSQLite) {
+                            Log.d(TAG, "Usuario guardado correctamente en SQLite")
+                            sincronizarConFirestore(userId, username, emailNormalizado, rol)
+                            mostrarExitoYRedirigir(emailNormalizado, true)
+                        } else {
+                            Log.e(TAG, "Error: No se pudo guardar en SQLite")
+                            limpiarUsuarioFirebase()
+                            runOnUiThread {
+                                Toast.makeText(this@RegistroActivity, "Error al guardar en base de datos local", Toast.LENGTH_LONG).show()
+                                resetBotonRegistro()
                             }
-
-                        } catch (e: Exception) {
-                            Log.e(TAG, "Error en guardar en SQLite: ${e.message}")
-                            false
                         }
                     }
-
-                    val usuarioVerificado = withContext(Dispatchers.IO) {
-                        Usuario.obtenerUsuarioPorNombre(this@RegistroActivity, usernameNormalizado) != null
-                    }
-
-                    Log.d(TAG, "Verificacion final - Usuario en BD: $usuarioVerificado")
-
-                    if (usuarioVerificado) {
-                        Log.d(TAG, "REGISTRO COMPLETADO EXITOSAMENTE")
-
-                        sincronizarConFirestore(usernameNormalizado, rol)
-                        mostrarExitoYRedirigir(usernameNormalizado, esRegistroNuevo = true)
-
-                    } else {
-                        Log.e(TAG, "Error: No se pudo verificar el usuario en SQLite")
-
-                        limpiarUsuarioFirebase()
-
-                        Toast.makeText(
-                            this@RegistroActivity,
-                            "Error al guardar en base de datos local",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                        resetBotonRegistro()
-                    }
-
-                } else {
-                    throw Exception("Usuario de Firebase nulo despues del registro")
+                } catch (e: Exception) {
+                    Log.e(TAG, "Error en proceso de registro: ${e.message}", e)
+                    manejarErrorFirebase(e)
                 }
-
-            } catch (e: Exception) {
-                manejarErrorFirebase(e)
             }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error en registrarUsuario", e)
+            Toast.makeText(this, "Error inesperado", Toast.LENGTH_SHORT).show()
+            resetBotonRegistro()
         }
     }
 
-    // ==================================================================
-    // MÉTODOS DE SINCRONIZACIÓN CON FIRESTORE
-    // ==================================================================
+    private suspend fun guardarUsuarioEnSQLite(username: String, password: String, rol: String, email: String): Boolean {
+        return try {
+            val dbHelper = DatabaseHelper(this@RegistroActivity)
 
-    private fun sincronizarConFirestore(email: String, rol: String) {
+            // Intentar insertar el usuario
+            val resultado = dbHelper.insertarUsuario(username, password, rol, email)
+            Log.d(TAG, "Resultado insert SQLite: $resultado")
+
+            if (resultado == -1L) {
+                Log.e(TAG, "Error en insertarUsuario, intentando método alternativo...")
+                // Intentar método alternativo si el primero falla
+                return insertarUsuarioAlternativo(dbHelper, username, password, rol, email)
+            }
+
+            // Verificar que realmente se guardó
+            val guardadoCorrectamente = verificarUsuarioGuardadoPorEmail(email)
+            if (!guardadoCorrectamente) {
+                Log.e(TAG, "Usuario no encontrado después de insertar, intentando método alternativo...")
+                return insertarUsuarioAlternativo(dbHelper, username, password, rol, email)
+            }
+
+            true
+        } catch (e: Exception) {
+            Log.e(TAG, "Error guardando usuario en SQLite: ${e.message}", e)
+            false
+        }
+    }
+
+    private fun insertarUsuarioAlternativo(dbHelper: DatabaseHelper, username: String, password: String, rol: String, email: String): Boolean {
+        return try {
+            // Intentar con el método sin email primero
+            val resultadoSinEmail = dbHelper.insertarUsuario(username, password, rol)
+            Log.d(TAG, "Resultado insert sin email: $resultadoSinEmail")
+
+            if (resultadoSinEmail != -1L) {
+                // Si se guardó sin email, actualizar para agregar el email
+                val cursor = dbHelper.obtenerTodosLosUsuarios()
+                var usuarioId: Int? = null
+
+                if (cursor != null && cursor.moveToLast()) {
+                    do {
+                        val user = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_USERNAME))
+                        if (user.equals(username, ignoreCase = true)) {
+                            usuarioId = cursor.getInt(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_USUARIO_ID))
+                            break
+                        }
+                    } while (cursor.moveToPrevious())
+                    cursor.close()
+                }
+
+                if (usuarioId != null) {
+                    val resultadoUpdate = dbHelper.actualizarUsuario(username, rol, email)
+                    Log.d(TAG, "Resultado update con email: $resultadoUpdate")
+                    resultadoUpdate > 0
+                } else {
+                    false
+                }
+            } else {
+                false
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error en método alternativo: ${e.message}", e)
+            false
+        }
+    }
+
+    private suspend fun verificarCorreoExistente(email: String): Boolean {
+        return try {
+            val dbHelper = DatabaseHelper(this@RegistroActivity)
+            val cursor = dbHelper.obtenerTodosLosUsuarios()
+            var existe = false
+
+            if (cursor != null && cursor.moveToFirst()) {
+                do {
+                    try {
+                        val emailDb = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_EMAIL))
+
+                        if (emailDb != null && emailDb.equals(email, ignoreCase = true)) {
+                            existe = true
+                            Log.d(TAG, "Correo ya existe en BD: $emailDb")
+                            break
+                        }
+                    } catch (e: Exception) {
+                        Log.e(TAG, "Error leyendo cursor", e)
+                    }
+                } while (cursor.moveToNext())
+                cursor.close()
+            }
+            existe
+        } catch (e: Exception) {
+            Log.e(TAG, "Error verificando correo existente: ${e.message}", e)
+            false
+        }
+    }
+
+    private suspend fun verificarUsuarioGuardadoPorEmail(email: String): Boolean {
+        return try {
+            val dbHelper = DatabaseHelper(this@RegistroActivity)
+            val cursor = dbHelper.obtenerTodosLosUsuarios()
+            var encontrado = false
+
+            if (cursor != null && cursor.moveToFirst()) {
+                do {
+                    try {
+                        val emailDb = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_EMAIL))
+                        if (emailDb != null && emailDb.equals(email, ignoreCase = true)) {
+                            encontrado = true
+                            Log.d(TAG, "Usuario verificado en BD por correo: $emailDb")
+                            break
+                        }
+                    } catch (e: Exception) {
+                        Log.e(TAG, "Error verificando usuario guardado", e)
+                    }
+                } while (cursor.moveToNext())
+                cursor.close()
+            }
+            encontrado
+        } catch (e: Exception) {
+            Log.e(TAG, "Error en verificarUsuarioGuardadoPorEmail: ${e.message}", e)
+            false
+        }
+    }
+
+    private fun sincronizarConFirestore(userId: String, username: String, email: String, rol: String) {
         try {
             val firestore = Firebase.firestore
             val datosUsuario = hashMapOf(
+                "userId" to userId,
+                "username" to username,
                 "email" to email,
                 "rol" to rol,
                 "fechaRegistro" to System.currentTimeMillis()
             )
+
             firestore.collection("usuarios")
-                .document(email)
+                .document(userId)
                 .set(datosUsuario)
                 .addOnSuccessListener {
-                    Log.d(TAG, "Usuario sincronizado con Firestore")
+                    Log.d(TAG, "Usuario guardado en Firestore")
                 }
                 .addOnFailureListener { e ->
-                    Log.e(TAG, "Error al guardar en Firestore: ${e.message}", e)
+                    Log.e(TAG, "Error Firestore", e)
                 }
         } catch (e: Exception) {
-            Log.e(TAG, "Error en Firestore: ${e.message}", e)
+            Log.e(TAG, "Error Firestore", e)
         }
     }
-
-    // ==================================================================
-    // MÉTODOS DE MANEJO DE ERRORES
-    // ==================================================================
 
     private suspend fun limpiarUsuarioFirebase() {
         try {
             auth.currentUser?.delete()?.await()
             auth.signOut()
-            Log.d(TAG, "Usuario eliminado de Firebase despues del error")
+            Log.d(TAG, "Usuario limpiado de Firebase")
         } catch (e: Exception) {
-            Log.e(TAG, "Error limpiando usuario de Firebase", e)
+            Log.e(TAG, "Error limpiando Firebase", e)
         }
     }
 
     private fun manejarErrorFirebase(e: Exception) {
         val errorMessage = when (e) {
-            is FirebaseAuthUserCollisionException -> "El email ya esta registrado en Firebase. Puede iniciar sesion directamente."
-            is FirebaseAuthInvalidCredentialsException -> "Formato de email invalido"
-            else -> e.message ?: "Error al registrar en Firebase"
+            is FirebaseAuthUserCollisionException -> "El email ya está registrado"
+            is FirebaseAuthInvalidCredentialsException -> "Formato de email inválido"
+            else -> "Error al registrar: ${e.message}"
         }
-
-        Log.e(TAG, "Error en registro: $errorMessage", e)
 
         if (e is FirebaseAuthUserCollisionException) {
-            val username = etUsuario.text.toString().trim().lowercase()
-            mostrarExitoYRedirigir(username, esRegistroNuevo = false)
+            val email = etEmail.text.toString().trim().lowercase()
+            mostrarExitoYRedirigir(email, false)
         } else {
-            Toast.makeText(this@RegistroActivity, errorMessage, Toast.LENGTH_LONG).show()
-            resetBotonRegistro()
+            runOnUiThread {
+                Toast.makeText(this@RegistroActivity, errorMessage, Toast.LENGTH_LONG).show()
+                resetBotonRegistro()
+            }
         }
     }
-
-    // ==================================================================
-    // MÉTODOS DE INTERFAZ DE USUARIO
-    // ==================================================================
 
     private fun mostrarExitoYRedirigir(email: String, esRegistroNuevo: Boolean) {
         runOnUiThread {
             try {
-                try {
-                    auth.signOut()
-                    Log.d(TAG, "Sesion de Firebase cerrada")
-                } catch (e: Exception) {
-                    Log.e(TAG, "Error cerrando sesion de Firebase: ${e.message}")
-                }
-
                 SessionManager.logout(this@RegistroActivity)
 
                 val mensaje = if (esRegistroNuevo) {
-                    "Registro exitoso. Ahora puede iniciar sesion"
+                    "Registro exitoso"
                 } else {
-                    "El usuario ya estaba registrado. Puede iniciar sesion"
+                    "Usuario ya registrado"
                 }
 
-                Toast.makeText(this@RegistroActivity, mensaje, Toast.LENGTH_LONG).show()
+                Toast.makeText(this, mensaje, Toast.LENGTH_LONG).show()
 
                 if (esRegistroNuevo) {
                     limpiarCampos()
@@ -254,16 +391,15 @@ class RegistroActivity : AppCompatActivity() {
 
                 resetBotonRegistro()
 
-                val intent = Intent(this@RegistroActivity, LoginActivity::class.java).apply {
+                val intent = Intent(this, LoginActivity::class.java).apply {
                     putExtra("email_registrado", email)
                     flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                 }
                 startActivity(intent)
                 finish()
-
             } catch (e: Exception) {
-                Log.e(TAG, "Error en mostrarExitoYRedirigir: ${e.message}", e)
-                val intent = Intent(this@RegistroActivity, LoginActivity::class.java)
+                Log.e(TAG, "Error en redirección", e)
+                val intent = Intent(this, LoginActivity::class.java)
                 startActivity(intent)
                 finish()
             }
@@ -273,16 +409,16 @@ class RegistroActivity : AppCompatActivity() {
     private fun resetBotonRegistro() {
         runOnUiThread {
             btnRegistrar.isEnabled = true
-            btnRegistrar.text = "Registrar"
+            btnRegistrar.text = "Guardar"
         }
     }
 
     private fun limpiarCampos() {
         try {
-            etUsuario.text.clear()
-            etPassword.text.clear()
-            switchRol.isChecked = false
-            Log.d(TAG, "Campos limpiados")
+            etUsername.text?.clear()
+            etEmail.text?.clear()
+            etPassword.text?.clear()
+            spRol.setSelection(0)
         } catch (e: Exception) {
             Log.e(TAG, "Error limpiando campos", e)
         }

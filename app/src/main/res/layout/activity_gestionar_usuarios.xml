@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@android:color/white"
@@ -12,7 +11,6 @@
         android:orientation="vertical"
         android:padding="16dp">
 
-        <!-- Header con título -->
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -23,93 +21,52 @@
             android:gravity="center"
             android:layout_marginBottom="20dp" />
 
-        <!-- Tarjeta de acciones principales -->
-        <com.google.android.material.card.MaterialCardView
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"
-            app:cardCornerRadius="10dp"
-            app:cardElevation="3dp"
-            app:cardBackgroundColor="@color/colorPrimaryLight">
+            android:orientation="horizontal"
+            android:weightSum="2"
+            android:layout_marginBottom="16dp">
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:padding="14dp"
-                android:weightSum="2">
+            <Button
+                android:id="@+id/btnAgregarUsuario"
+                android:layout_width="0dp"
+                android:layout_height="50dp"
+                android:layout_weight="1"
+                android:layout_marginEnd="8dp"
+                android:text="Agregar"
+                android:textColor="@android:color/white"
+                android:backgroundTint="@color/colorPrimary" />
 
-                <!-- Botón Agregar Usuario -->
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnAgregarUsuario"
-                    android:layout_width="0dp"
-                    android:layout_height="50dp"
-                    android:layout_weight="1"
-                    android:layout_marginEnd="6dp"
-                    android:text="Agregar"
-                    android:textSize="14sp"
-                    android:textColor="@android:color/white"
-                    android:backgroundTint="@color/colorPrimary"
-                    android:icon="@android:drawable/ic_input_add"
-                    app:iconGravity="textStart"
-                    app:iconPadding="4dp"
-                    style="@style/Widget.Material3.Button.OutlinedButton" />
+            <Button
+                android:id="@+id/btnActualizarLista"
+                android:layout_width="0dp"
+                android:layout_height="50dp"
+                android:layout_weight="1"
+                android:layout_marginStart="8dp"
+                android:text="Actualizar"
+                android:textColor="@android:color/white"
+                android:backgroundTint="@color/colorPrimary"/>
 
-                <!-- Botón Actualizar Lista -->
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnActualizarLista"
-                    android:layout_width="0dp"
-                    android:layout_height="50dp"
-                    android:layout_weight="1"
-                    android:layout_marginStart="6dp"
-                    android:text="Actualizar"
-                    android:textSize="14sp"
-                    android:textColor="@color/colorPrimary"
-                    android:backgroundTint="@android:color/transparent"
-                    android:icon="@android:drawable/ic_menu_rotate"
-                    app:iconGravity="textStart"
-                    app:iconPadding="4dp"
-                    app:strokeColor="@color/colorPrimary"
-                    app:strokeWidth="1dp"
-                    style="@style/Widget.Material3.Button.OutlinedButton" />
+        </LinearLayout>
 
-            </LinearLayout>
-        </com.google.android.material.card.MaterialCardView>
-
-        <!-- Sección de lista de usuarios -->
-        <com.google.android.material.card.MaterialCardView
+        <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:cardCornerRadius="10dp"
-            app:cardElevation="2dp">
+            android:text="Usuarios Registrados"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="@android:color/black"
+            android:padding="8dp"
+            android:layout_marginBottom="8dp" />
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical">
-
-                <!-- Header de la lista -->
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Usuarios Registrados"
-                    android:textSize="16sp"
-                    android:textStyle="bold"
-                    android:textColor="@android:color/black"
-                    android:padding="14dp"
-                    android:background="@color/colorPrimaryLight" />
-
-                <!-- Lista de usuarios con altura fija -->
-                <ListView
-                    android:id="@+id/lvUsuarios"
-                    android:layout_width="match_parent"
-                    android:layout_height="400dp"
-                    android:padding="6dp"
-                    android:divider="@android:color/transparent"
-                    android:dividerHeight="6dp" />
-
-            </LinearLayout>
-        </com.google.android.material.card.MaterialCardView>
+        <ListView
+            android:id="@+id/lvUsuarios"
+            android:layout_width="match_parent"
+            android:layout_height="400dp"
+            android:padding="6dp"
+            android:divider="@android:color/transparent"
+            android:dividerHeight="6dp" />
 
     </LinearLayout>
 </ScrollView>

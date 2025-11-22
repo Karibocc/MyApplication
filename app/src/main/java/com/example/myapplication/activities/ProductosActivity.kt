@@ -67,7 +67,7 @@ class ProductosActivity : AppCompatActivity() {
                 }
             },
             onEditClick = { producto -> editarProducto(producto) },
-            onDeleteClick = { producto -> eliminarProducto(producto) },
+            onDeleteClick = { producto -> mostrarDialogoEliminar(producto) },
             isAdmin = isAdmin
         )
         recyclerView.adapter = adapter
@@ -116,6 +116,17 @@ class ProductosActivity : AppCompatActivity() {
         }
     }
 
+    private fun mostrarDialogoEliminar(producto: Producto) {
+        androidx.appcompat.app.AlertDialog.Builder(this)
+            .setTitle("Eliminar Producto")
+            .setMessage("¿Estás seguro de eliminar ${producto.nombre}?")
+            .setPositiveButton("Eliminar") { _, _ ->
+                eliminarProducto(producto)
+            }
+            .setNegativeButton("Cancelar", null)
+            .show()
+    }
+
     private fun eliminarProducto(producto: Producto) {
         coroutineScope.launch {
             try {
@@ -154,19 +165,21 @@ class ProductosActivity : AppCompatActivity() {
         try {
             if (moveToFirst()) {
                 do {
-                    val producto = Producto(
-                        id = getInt(getColumnIndex("id")),
-                        nombre = getString(getColumnIndex("nombre")) ?: "",
-                        descripcion = getString(getColumnIndex("descripcion")) ?: "",
-                        precio = getDouble(getColumnIndex("precio")),
-                        imagen_path = getString(getColumnIndex("imagen_path")) ?: "",
-                        stock = getInt(getColumnIndex("stock"))
-                    )
-                    productoList.add(producto)
+                    try {
+                        val producto = Producto(
+                            id = getInt(getColumnIndexOrThrow(DatabaseHelper.COLUMN_ID)),
+                            nombre = getString(getColumnIndexOrThrow(DatabaseHelper.COLUMN_NOMBRE)),
+                            descripcion = getString(getColumnIndexOrThrow(DatabaseHelper.COLUMN_DESCRIPCION)),
+                            precio = getDouble(getColumnIndexOrThrow(DatabaseHelper.COLUMN_PRECIO)),
+                            imagen_path = getString(getColumnIndexOrThrow(DatabaseHelper.COLUMN_IMAGEN_PATH)) ?: "",
+                            stock = getInt(getColumnIndexOrThrow(DatabaseHelper.COLUMN_STOCK))
+                        )
+                        productoList.add(producto)
+                    } catch (e: Exception) {
+                    }
                 } while (moveToNext())
             }
         } catch (e: Exception) {
-            // Manejar error silenciosamente
         } finally {
             close()
         }

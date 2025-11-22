@@ -1,5 +1,6 @@
 package com.example.myapplication.fragments
 
+import android.content.Intent
 import android.database.Cursor
 import android.os.Bundle
 import android.util.Log
@@ -11,6 +12,7 @@ import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.myapplication.R
+import com.example.myapplication.activities.GestionProductoActivity
 import com.example.myapplication.adapters.ProductoAdapter
 import com.example.myapplication.database.DatabaseHelper
 import com.example.myapplication.managers.SessionManager
@@ -106,7 +108,7 @@ class ProductosFragment : Fragment() {
             },
             onEditClick = { producto ->
                 if (esAdministrador) {
-                    mostrarDialogoEditarProducto(producto)
+                    editarProducto(producto)
                 }
             },
             onDeleteClick = { producto ->
@@ -155,8 +157,7 @@ class ProductosFragment : Fragment() {
                 "Nombre: ${producto.nombre}\n" +
                         "Descripción: ${producto.descripcion}\n" +
                         "Precio: $${"%.2f".format(producto.precio)}\n" +
-                        "Stock: ${producto.stock}\n" +
-                        "Categoría: ${producto.categoria}"
+                        "Stock: ${producto.stock}"
             )
             .setPositiveButton("Aceptar") { dialog, _ ->
                 dialog.dismiss()
@@ -164,8 +165,12 @@ class ProductosFragment : Fragment() {
             .show()
     }
 
-    private fun mostrarDialogoEditarProducto(producto: Producto) {
-        Toast.makeText(requireContext(), "Funcionalidad de edición en desarrollo", Toast.LENGTH_SHORT).show()
+    private fun editarProducto(producto: Producto) {
+        val intent = Intent(requireContext(), GestionProductoActivity::class.java).apply {
+            putExtra("MODO_EDICION", true)
+            putExtra("PRODUCTO_ID", producto.id)
+        }
+        startActivity(intent)
     }
 
     private fun mostrarDialogoConfirmarEliminacion(producto: Producto) {
@@ -215,8 +220,6 @@ class ProductosFragment : Fragment() {
                         val precio = getDouble(getColumnIndexOrThrow(DatabaseHelper.COLUMN_PRECIO))
                         val imagenPath = getString(getColumnIndexOrThrow(DatabaseHelper.COLUMN_IMAGEN_PATH)) ?: ""
                         val stock = getInt(getColumnIndexOrThrow(DatabaseHelper.COLUMN_STOCK))
-                        val cantidad = getInt(getColumnIndexOrThrow(DatabaseHelper.COLUMN_CANTIDAD))
-                        val categoria = getString(getColumnIndexOrThrow(DatabaseHelper.COLUMN_CATEGORIA)) ?: "General"
 
                         productos.add(Producto(
                             id = id,
@@ -224,9 +227,7 @@ class ProductosFragment : Fragment() {
                             descripcion = descripcion,
                             precio = precio,
                             imagen_path = imagenPath,
-                            stock = stock,
-                            cantidad = cantidad,
-                            categoria = categoria
+                            stock = stock
                         ))
 
                         Log.d(TAG, "Producto cargado: $nombre (ID: $id)")

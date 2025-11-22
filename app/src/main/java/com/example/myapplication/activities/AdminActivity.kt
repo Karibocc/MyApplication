@@ -65,10 +65,6 @@ class AdminActivity : AppCompatActivity() {
         }
     }
 
-    // ==================================================================
-    // CONFIGURACIÓN INICIAL
-    // ==================================================================
-
     private fun initializeViews() {
         try {
             tvAdminInfo = findViewById(R.id.tvAdminInfo)
@@ -115,7 +111,14 @@ class AdminActivity : AppCompatActivity() {
 
         btnGestionarProductos.setOnClickListener {
             Log.d(TAG, "Clic en Gestionar Productos")
-            gestionarProductos()
+            try {
+                val intent = Intent(this, ProductosActivity::class.java)
+                startActivity(intent)
+                Log.d(TAG, "ProductosActivity iniciada exitosamente")
+            } catch (e: Exception) {
+                Log.e(TAG, "ERROR abriendo ProductosActivity: ${e.message}", e)
+                showToast("Error al abrir gestión de productos")
+            }
         }
 
         btnVerReportes.setOnClickListener {
@@ -130,10 +133,6 @@ class AdminActivity : AppCompatActivity() {
 
         Log.d(TAG, "Todos los listeners configurados")
     }
-
-    // ==================================================================
-    // NAVEGACIÓN ENTRE ACTIVIDADES
-    // ==================================================================
 
     private fun abrirReportesConDatosReales() {
         try {
@@ -155,18 +154,6 @@ class AdminActivity : AppCompatActivity() {
         } catch (e: Exception) {
             Log.e(TAG, "ERROR abriendo reportes: ${e.message}", e)
             mostrarMenuReportes()
-        }
-    }
-
-    private fun gestionarProductos() {
-        try {
-            Log.d(TAG, "Abriendo gestion de productos...")
-            val intent = Intent(this, GestionProductoActivity::class.java)
-            startActivity(intent)
-            Log.d(TAG, "GestionarProductosActivity iniciada")
-        } catch (e: Exception) {
-            Log.e(TAG, "ERROR abriendo gestion de productos: ${e.message}", e)
-            showToast("Funcionalidad de productos en desarrollo")
         }
     }
 
@@ -235,10 +222,6 @@ class AdminActivity : AppCompatActivity() {
             btnGestionarUsuarios.isEnabled = true
         }
     }
-
-    // ==================================================================
-    // SISTEMA DE REPORTES
-    // ==================================================================
 
     private fun obtenerTotalProductos(): Int {
         return try {
@@ -489,10 +472,6 @@ class AdminActivity : AppCompatActivity() {
         showToast("Enviando reporte por email...")
     }
 
-    // ==================================================================
-    // UTILIDADES DE REPORTES
-    // ==================================================================
-
     private fun obtenerUsuariosParaReporte(): List<Usuario> {
         return try {
             Usuario.obtenerTodosLosUsuarios(this) ?: emptyList()
@@ -531,10 +510,6 @@ class AdminActivity : AppCompatActivity() {
         }
     }
 
-    // ==================================================================
-    // GESTIÓN DE SESIÓN
-    // ==================================================================
-
     private fun cerrarSesion() {
         coroutineScope.launch {
             try {
@@ -564,10 +539,6 @@ class AdminActivity : AppCompatActivity() {
             finishAffinity()
         }
     }
-
-    // ==================================================================
-    // MÉTODOS DE EMERGENCIA
-    // ==================================================================
 
     private fun crearLayoutMinimo() {
         try {
