@@ -126,6 +126,6 @@
             android:contentDescription="@string/eliminar_producto"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:padding="12dp"
-            app:tint="@color/error_red" />
+            app:tint="@color/red" />
     </RelativeLayout>
 </androidx.cardview.widget.CardView>

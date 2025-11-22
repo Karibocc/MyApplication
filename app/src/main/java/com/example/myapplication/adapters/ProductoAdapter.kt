@@ -18,7 +18,8 @@ class ProductoAdapter(
     private var productos: List<Producto>,
     private val onItemClick: (Producto) -> Unit,
     private val onEditClick: (Producto) -> Unit,
-    private val onDeleteClick: (Producto) -> Unit // Corregido el tipo de parámetro
+    private val onDeleteClick: (Producto) -> Unit,
+    private val isAdmin: Boolean = false
 ) : RecyclerView.Adapter<ProductoAdapter.ProductoViewHolder>() {
 
     private val db: DatabaseHelper = DatabaseHelper(context)
@@ -36,7 +37,6 @@ class ProductoAdapter(
             tvDescripcion.text = producto.descripcion
             tvPrecio.text = "$${"%.2f".format(producto.precio)}"
 
-            // Cargar imagen con Glide
             producto.imagen_path?.let { imageUrl ->
                 Glide.with(context)
                     .load(imageUrl)
@@ -48,9 +48,18 @@ class ProductoAdapter(
                 ivImagen.setImageResource(R.drawable.ic_image_placeholder)
             }
 
-            itemView.setOnClickListener { onItemClick(producto) }
-            btnEdit.setOnClickListener { onEditClick(producto) }
-            btnDelete.setOnClickListener { onDeleteClick(producto) }
+            if (isAdmin) {
+                btnEdit.visibility = View.VISIBLE
+                btnDelete.visibility = View.VISIBLE
+
+                btnEdit.setOnClickListener { onEditClick(producto) }
+                btnDelete.setOnClickListener { onDeleteClick(producto) }
+                itemView.setOnClickListener { onItemClick(producto) }
+            } else {
+                btnEdit.visibility = View.GONE
+                btnDelete.visibility = View.GONE
+                itemView.setOnClickListener { onItemClick(producto) }
+            }
         }
     }
 
@@ -71,9 +80,6 @@ class ProductoAdapter(
         notifyDataSetChanged()
     }
 
-    /**
-     * 🔹 NUEVO: Método para obtener un producto por su posición
-     */
     fun getProductoAt(position: Int): Producto? {
         return if (position in 0 until productos.size) {
             productos[position]
@@ -82,9 +88,6 @@ class ProductoAdapter(
         }
     }
 
-    /**
-     * 🔹 NUEVO: Método para actualizar un producto específico
-     */
     fun actualizarProducto(productoActualizado: Producto) {
         val nuevaLista = productos.toMutableList()
         val index = nuevaLista.indexOfFirst { it.id == productoActualizado.id }
@@ -95,9 +98,6 @@ class ProductoAdapter(
         }
     }
 
-    /**
-     * 🔹 NUEVO: Método para eliminar un producto específico
-     */
     fun eliminarProducto(productoId: Int) {
         val nuevaLista = productos.toMutableList()
         val index = nuevaLista.indexOfFirst { it.id == productoId }
@@ -108,9 +108,6 @@ class ProductoAdapter(
         }
     }
 
-    /**
-     * 🔹 NUEVO: Método para filtrar productos
-     */
     fun filtrarProductos(query: String): List<Producto> {
         return if (query.isBlank()) {
             productos

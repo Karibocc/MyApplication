@@ -51,17 +51,6 @@
         android:textStyle="bold"
         android:layout_marginBottom="16dp"/>
 
-    <!-- Google Sign In Button -->
-    <Button
-        android:id="@+id/btnGoogle"
-        android:text="@string/ingresar_con_google"
-        android:layout_width="match_parent"
-        android:layout_height="48dp"
-        android:layout_marginTop="12dp"
-        android:drawableStart="@drawable/ic_google"
-        android:drawablePadding="8dp"
-        android:backgroundTint="@color/white"
-        android:textColor="@color/black"/>
 
     <!-- Register Button -->
     <Button

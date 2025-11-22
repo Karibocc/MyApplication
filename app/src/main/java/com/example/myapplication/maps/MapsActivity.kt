@@ -30,20 +30,15 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-/**
- * Actividad encargada de mostrar un mapa con soporte de geolocalización,
- * utilizando la API de Google Maps y el proveedor de ubicación de Google (FusedLocationProviderClient).
- */
 class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
     companion object {
         private const val LOCATION_PERMISSION_REQUEST_CODE = 1001
         private const val DEFAULT_ZOOM = 12f
         private const val LOCATION_ZOOM = 17f
-        private val DEFAULT_LOCATION = LatLng(19.4326, -99.1332) // CDMX como ubicación predeterminada
+        private val DEFAULT_LOCATION = LatLng(19.4326, -99.1332)
     }
 
-    // ----------------------- VARIABLES PRINCIPALES -----------------------
     private lateinit var mMap: GoogleMap
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private lateinit var locationRequest: LocationRequest
@@ -51,7 +46,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
     private val coroutineScope = CoroutineScope(Dispatchers.Main)
 
-    // Launcher moderno para activar el GPS sin usar startActivityForResult (deprecated)
     private val enableGpsLauncher = registerForActivityResult(
         ActivityResultContracts.StartIntentSenderForResult()
     ) { result ->
@@ -63,17 +57,15 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         }
     }
 
-    // ----------------------- CICLO DE VIDA -----------------------
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_maps)
 
-        initializeMap()         // Inicializa el fragmento del mapa
-        setupLocationClient()   // Inicializa el proveedor de ubicación (SOLUCIÓN SUGERIDA)
-        setupLocationButton()   // Configura el botón flotante para centrar la ubicación
+        initializeMap()
+        setupLocationClient()
+        setupLocationButton()
     }
 
-    // ----------------------- CONFIGURACIÓN DEL MAPA -----------------------
     private fun initializeMap() {
         val mapFragment = supportFragmentManager
             .findFragmentById(R.id.map_fragment) as SupportMapFragment
@@ -99,35 +91,29 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     }
 
     private fun setInitialMapLocation() {
-        // Establece una ubicación base si el GPS no está disponible
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(DEFAULT_LOCATION, DEFAULT_ZOOM))
     }
 
     private fun setupMapInteractions() {
-        // Clic corto: añade marcador con coordenadas
         mMap.setOnMapClickListener { latLng ->
             addMarker(latLng, "Ubicación seleccionada", "Lat: ${latLng.latitude}, Lng: ${latLng.longitude}")
             animateCamera(latLng)
         }
 
-        // Clic largo: marcador azul
         mMap.setOnMapLongClickListener { latLng ->
             addMarker(latLng, "Marcador largo", color = BitmapDescriptorFactory.HUE_BLUE)
         }
 
-        // Clic en marcador: muestra Toast
         mMap.setOnMarkerClickListener { marker ->
             showToast("Clic en: ${marker.title}")
             false
         }
     }
 
-    // ----------------------- CLIENTE DE UBICACIÓN -----------------------
     private fun setupLocationClient() {
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
     }
 
-    // ----------------------- BOTÓN DE UBICACIÓN -----------------------
     private fun setupLocationButton() {
         findViewById<FloatingActionButton>(R.id.btnMyLocation).apply {
             backgroundTintList = ContextCompat.getColorStateList(this@MapsActivity, R.color.verde)
@@ -135,7 +121,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         }
     }
 
-    // ----------------------- PERMISOS Y GPS -----------------------
     private fun checkLocationPermission() {
         if (hasLocationPermission()) enableLocationFeatures()
     }
@@ -168,7 +153,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                 locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)
     }
 
-    // Solicita al usuario activar el GPS si está deshabilitado
     private fun promptEnableGPS() {
         coroutineScope.launch {
             try {
@@ -195,7 +179,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         }
     }
 
-    // ----------------------- FUNCIONES DE LOCALIZACIÓN -----------------------
     @SuppressLint("MissingPermission")
     private fun enableLocationFeatures() {
         try {
@@ -205,7 +188,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         }
     }
 
-    // Obtiene la última ubicación conocida y activa actualizaciones periódicas
     @SuppressLint("MissingPermission")
     private fun startLocationFlow() {
         coroutineScope.launch {
@@ -228,7 +210,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         }
     }
 
-    // Configura los parámetros de frecuencia e intervalo de actualizaciones
     @SuppressLint("MissingPermission")
     private fun setupLocationUpdates() {
         locationRequest = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 5000L)
@@ -273,7 +254,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         stopLocationUpdates()
     }
 
-    // ----------------------- UTILIDADES -----------------------
     private fun addMarker(position: LatLng, title: String, description: String? = null, color: Float? = null) {
         try {
             MarkerOptions().apply {
@@ -304,18 +284,10 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         }
     }
 
-    /**
-     * 🔹 NUEVO: Método para guardar ubicación en base de datos si es necesario
-     */
     private fun guardarUbicacionEnDB(latLng: LatLng, titulo: String) {
-        // Aquí podrías integrar con DatabaseHelper si necesitas guardar ubicaciones
-        // Por ejemplo: dbHelper.insertarUbicacion(latLng.latitude, latLng.longitude, titulo)
         Log.d("MapsActivity", "Ubicación guardada: $titulo - Lat: ${latLng.latitude}, Lng: ${latLng.longitude}")
     }
 
-    /**
-     * 🔹 NUEVO: Método para limpiar todos los marcadores del mapa
-     */
     private fun limpiarMarcadores() {
         try {
             mMap.clear()
@@ -324,14 +296,10 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         }
     }
 
-    /**
-     * 🔹 NUEVO: Método para obtener la ubicación actual del mapa
-     */
     private fun obtenerUbicacionActualMapa(): LatLng {
         return mMap.cameraPosition.target
     }
 
-    // Manejo del resultado de la solicitud de permisos
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == LOCATION_PERMISSION_REQUEST_CODE) {
@@ -344,10 +312,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     override fun onDestroy() {
         super.onDestroy()
         stopLocationUpdates()
-        coroutineScope.launch {
-            // Limpiar recursos si es necesario
-        }
     }
 }
-
 

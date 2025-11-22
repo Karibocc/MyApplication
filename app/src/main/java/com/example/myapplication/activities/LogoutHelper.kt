@@ -2,10 +2,9 @@ package com.example.myapplication.activities
 
 import android.app.Activity
 import android.content.Intent
-import com.example.myapplication.activities.LoginActivity
 import com.example.myapplication.managers.SessionManager
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.ktx.auth
+
 
 object LogoutHelper {
 
@@ -62,7 +61,7 @@ object LogoutHelper {
     }
 
     /**
-     * Cierra sesión sin redirigir (útil para servicios o background)
+     * Cierra sesión sin redirigir
      */
     fun cerrarSesionSilenciosa(context: android.content.Context) {
         SessionManager.logout(context)

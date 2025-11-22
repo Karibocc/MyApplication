@@ -10,7 +10,6 @@ object SessionManager {
     private const val KEY_USERNAME = "username"
     private const val KEY_ROL = "rol"
 
-    // Guardar sesión de usuario
     fun saveUserSession(context: Context, username: String, rol: String) {
         try {
             val prefs: SharedPreferences =
@@ -25,7 +24,6 @@ object SessionManager {
         }
     }
 
-    // Obtener email/username del usuario actual
     fun getCurrentUserEmail(context: Context): String? {
         return try {
             val prefs: SharedPreferences =
@@ -37,7 +35,6 @@ object SessionManager {
         }
     }
 
-    // Obtener rol del usuario actual
     fun getCurrentUserRole(context: Context): String? {
         return try {
             val prefs: SharedPreferences =
@@ -49,7 +46,6 @@ object SessionManager {
         }
     }
 
-    // Cerrar sesión
     fun logout(context: Context) {
         try {
             val prefs: SharedPreferences =
@@ -63,29 +59,22 @@ object SessionManager {
         }
     }
 
-    // Verifica si hay sesión activa
     fun isLoggedIn(context: Context): Boolean {
         return getCurrentUserEmail(context) != null
     }
 
-    // ===================== MÉTODOS NUEVOS PARA COMPATIBILIDAD =====================
-
-    // Alias para getCurrentUserEmail - mantiene compatibilidad
     fun getUsername(context: Context): String? {
         return getCurrentUserEmail(context)
     }
 
-    // Alias para getCurrentUserRole - mantiene compatibilidad
     fun getUserRole(context: Context): String? {
         return getCurrentUserRole(context)
     }
 
-    // Alias para isLoggedIn - mantiene compatibilidad
     fun isUserLoggedIn(context: Context): Boolean {
         return isLoggedIn(context)
     }
 
-    // Método para limpiar sesión (alias de logout)
     fun clearSession(context: Context) {
         logout(context)
     }

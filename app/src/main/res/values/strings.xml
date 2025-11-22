@@ -83,5 +83,6 @@
     <string name="hint_enter_stock">0</string>
     <string name="nombre_de_usuario">Nombre de usuario</string>
     <string name="rol">Rol</string>
+    <string name="editar_usuario">Editar Usuario</string>
 </resources>
 

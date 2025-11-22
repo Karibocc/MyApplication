@@ -1,19 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:background="#FFFFFF">
 
-    <Button
-        android:id="@+id/btnProducts"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/ver_productos"/>
-
-    <androidx.cardview.widget.CardView
-        android:id="@+id/cardProducts"
+    <TextView
+        android:id="@+id/tvTituloHome"
         android:layout_width="match_parent"
-        android:layout_height="100dp"
-        android:layout_margin="16dp">
-        <!-- Contenido del CardView -->
-    </androidx.cardview.widget.CardView>
+        android:layout_height="wrap_content"
+        android:text="Inicio"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:gravity="center"
+        android:layout_marginBottom="16dp"
+        android:textColor="#333333" />
+
+    <TextView
+        android:id="@+id/tvDescripcionHome"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Bienvenido a la pantalla de inicio"
+        android:textSize="16sp"
+        android:gravity="center"
+        android:textColor="#666666" />
+
 </LinearLayout>

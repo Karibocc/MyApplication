@@ -36,10 +36,8 @@ class ProfileFragment : Fragment() {
         btnLogout = view.findViewById(R.id.btnLogout)
         tvUserEmail = view.findViewById(R.id.tvUserEmail)
 
-        // Cargar información del usuario
         cargarInformacionUsuario()
 
-        // Configurar listener del botón de logout
         btnLogout.setOnClickListener {
             cerrarSesion()
         }
@@ -52,7 +50,6 @@ class ProfileFragment : Fragment() {
             try {
                 val user = auth.currentUser
                 if (user != null) {
-                    // Verificamos si también está en la base de datos local
                     val usuarioLocal = withContext(Dispatchers.IO) {
                         Usuario.obtenerUsuarioPorNombre(requireContext(), user.email ?: "")
                     }
@@ -60,7 +57,6 @@ class ProfileFragment : Fragment() {
                     if (usuarioLocal != null) {
                         tvUserEmail.text = "Usuario: ${usuarioLocal.username}\nRol: ${usuarioLocal.rol}"
                     } else {
-                        // Intentar obtener información de la sesión como fallback
                         val sessionEmail = SessionManager.getCurrentUserEmail(requireContext())
                         val sessionRole = SessionManager.getCurrentUserRole(requireContext())
 
@@ -71,7 +67,6 @@ class ProfileFragment : Fragment() {
                         }
                     }
                 } else {
-                    // Si no hay usuario de Firebase, intentar cargar desde sesión local
                     val sessionEmail = SessionManager.getCurrentUserEmail(requireContext())
                     val sessionRole = SessionManager.getCurrentUserRole(requireContext())
 
@@ -82,7 +77,6 @@ class ProfileFragment : Fragment() {
                     }
                 }
             } catch (e: Exception) {
-                // Fallback en caso de error
                 try {
                     val sessionEmail = SessionManager.getCurrentUserEmail(requireContext())
                     if (!sessionEmail.isNullOrEmpty()) {
@@ -99,23 +93,18 @@ class ProfileFragment : Fragment() {
 
     private fun cerrarSesion() {
         try {
-            // Cerrar sesión de Firebase
             auth.signOut()
 
-            // Limpiar sesión local usando ambos métodos para compatibilidad
             SessionManager.logout(requireContext())
             SessionManager.clearSession(requireContext())
 
-            // Redirigir al LoginActivity
             val intent = Intent(requireContext(), LoginActivity::class.java)
             intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
             startActivity(intent)
 
-            // Finalizar la actividad padre si es necesario
             activity?.finish()
 
         } catch (e: Exception) {
-            // En caso de error, intentar redirigir de todas formas
             val intent = Intent(requireContext(), LoginActivity::class.java)
             intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
             startActivity(intent)
@@ -125,6 +114,5 @@ class ProfileFragment : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
-        // Limpiar recursos si es necesario
     }
 }

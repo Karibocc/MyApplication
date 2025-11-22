@@ -102,7 +102,7 @@ class CarritoAdapter(
     }
 
     /**
-     * 🔹 NUEVO: Método para obtener un producto por su posición
+     * Método para obtener un producto por su posición
      */
     fun getProductoAt(position: Int): Producto? {
         return if (position in 0 until productos.size) {
@@ -113,7 +113,7 @@ class CarritoAdapter(
     }
 
     /**
-     * 🔹 NUEVO: Método para eliminar un producto específico del carrito
+     * Método para eliminar un producto específico del carrito
      */
     fun eliminarProducto(productoId: Int) {
         val index = productos.indexOfFirst { it.id == productoId }
@@ -124,7 +124,7 @@ class CarritoAdapter(
     }
 
     /**
-     * 🔹 NUEVO: Método para actualizar la cantidad de un producto específico
+     * Método para actualizar la cantidad de un producto específico
      */
     fun actualizarCantidad(productoId: Int, nuevaCantidad: Int) {
         val index = productos.indexOfFirst { it.id == productoId }
@@ -135,28 +135,28 @@ class CarritoAdapter(
     }
 
     /**
-     * 🔹 NUEVO: Método para calcular el total del carrito
+     * Método para calcular el total del carrito
      */
     fun calcularTotalCarrito(): Double {
         return productos.sumOf { it.precio * it.cantidad }
     }
 
     /**
-     * 🔹 NUEVO: Método para obtener la cantidad total de productos en el carrito
+     * Método para obtener la cantidad total de productos en el carrito
      */
     fun obtenerCantidadTotalProductos(): Int {
         return productos.sumOf { it.cantidad }
     }
 
     /**
-     * 🔹 NUEVO: Método para verificar si el carrito está vacío
+     * Método para verificar si el carrito está vacío
      */
     fun estaVacio(): Boolean {
         return productos.isEmpty()
     }
 
     /**
-     * 🔹 NUEVO: Método para limpiar todo el carrito
+     * Método para limpiar todo el carrito
      */
     fun limpiarCarrito() {
         val itemCount = productos.size

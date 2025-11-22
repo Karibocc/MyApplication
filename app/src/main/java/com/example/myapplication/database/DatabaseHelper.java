@@ -1,23 +1,23 @@
 package com.example.myapplication.database;
 
+import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.content.ContentValues;
 import android.util.Log;
-
+import com.example.myapplication.models.Producto;
 import java.security.MessageDigest;
 import java.security.SecureRandom;
 import java.util.Locale;
 
 public class DatabaseHelper extends SQLiteOpenHelper {
 
-    // ===================== CONFIGURACIÓN DE BASE DE DATOS =====================
+    // Configuración de base de datos
     private static final String DATABASE_NAME = "miapplication.db";
-    private static final int DATABASE_VERSION = 8; // 🔹 Incrementado por nuevas mejoras
+    private static final int DATABASE_VERSION = 8;
 
-    // ===================== TABLA PRODUCTOS =====================
+    // Tabla productos
     public static final String TABLE_PRODUCTOS = "productos";
     public static final String COLUMN_ID = "id";
     public static final String COLUMN_NOMBRE = "nombre";
@@ -26,25 +26,25 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public static final String COLUMN_IMAGEN_PATH = "imagen_path";
     public static final String COLUMN_STOCK = "stock";
     public static final String COLUMN_CANTIDAD = "cantidad";
-    public static final String COLUMN_CATEGORIA = "categoria"; // 🔹 NUEVO: Campo categoría
-    public static final String COLUMN_FECHA_CREACION = "fecha_creacion"; // 🔹 NUEVO: Fecha de creación
+    public static final String COLUMN_CATEGORIA = "categoria";
+    public static final String COLUMN_FECHA_CREACION = "fecha_creacion";
 
-    // ===================== TABLA USUARIOS =====================
+    // Tabla usuarios
     public static final String TABLE_USUARIOS = "usuarios";
     public static final String COLUMN_USUARIO_ID = "id_usuario";
     public static final String COLUMN_USERNAME = "username";
     public static final String COLUMN_PASSWORD = "password";
     public static final String COLUMN_SALT = "salt";
     public static final String COLUMN_ROL = "rol";
-    public static final String COLUMN_EMAIL = "email"; // 🔹 NUEVO: Campo email
-    public static final String COLUMN_FECHA_REGISTRO = "fecha_registro"; // 🔹 NUEVO: Fecha de registro
+    public static final String COLUMN_EMAIL = "email";
+    public static final String COLUMN_FECHA_REGISTRO = "fecha_registro";
 
-    // ===================== TABLA CARRITO =====================
+    // Tabla carrito
     public static final String TABLE_CARRITO = "carrito";
     public static final String COLUMN_CARRITO_ID = "id_carrito";
-    public static final String COLUMN_FECHA_AGREGADO = "fecha_agregado"; // 🔹 NUEVO: Fecha de agregado al carrito
+    public static final String COLUMN_FECHA_AGREGADO = "fecha_agregado";
 
-    // ===================== CREACIÓN DE TABLAS =====================
+    // Creación de tablas
     private static final String TABLE_CREATE_PRODUCTOS =
             "CREATE TABLE " + TABLE_PRODUCTOS + " (" +
                     COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
@@ -54,8 +54,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     COLUMN_IMAGEN_PATH + " TEXT, " +
                     COLUMN_STOCK + " INTEGER DEFAULT 0, " +
                     COLUMN_CANTIDAD + " INTEGER DEFAULT 1, " +
-                    COLUMN_CATEGORIA + " TEXT DEFAULT 'General', " + // 🔹 NUEVO
-                    COLUMN_FECHA_CREACION + " DATETIME DEFAULT CURRENT_TIMESTAMP);"; // 🔹 NUEVO
+                    COLUMN_CATEGORIA + " TEXT DEFAULT 'General', " +
+                    COLUMN_FECHA_CREACION + " DATETIME DEFAULT CURRENT_TIMESTAMP);";
 
     private static final String TABLE_CREATE_USUARIOS =
             "CREATE TABLE " + TABLE_USUARIOS + " (" +
@@ -64,30 +64,33 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     COLUMN_PASSWORD + " TEXT NOT NULL, " +
                     COLUMN_SALT + " TEXT, " +
                     COLUMN_ROL + " TEXT NOT NULL, " +
-                    COLUMN_EMAIL + " TEXT, " + // 🔹 NUEVO
-                    COLUMN_FECHA_REGISTRO + " DATETIME DEFAULT CURRENT_TIMESTAMP);"; // 🔹 NUEVO
+                    COLUMN_EMAIL + " TEXT, " +
+                    COLUMN_FECHA_REGISTRO + " DATETIME DEFAULT CURRENT_TIMESTAMP);";
 
     private static final String TABLE_CREATE_CARRITO =
             "CREATE TABLE " + TABLE_CARRITO + " (" +
                     COLUMN_CARRITO_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
                     COLUMN_ID + " INTEGER NOT NULL, " +
                     COLUMN_CANTIDAD + " INTEGER DEFAULT 1, " +
-                    COLUMN_FECHA_AGREGADO + " DATETIME DEFAULT CURRENT_TIMESTAMP, " + // 🔹 NUEVO
+                    COLUMN_FECHA_AGREGADO + " DATETIME DEFAULT CURRENT_TIMESTAMP, " +
                     "FOREIGN KEY(" + COLUMN_ID + ") REFERENCES " +
-                    TABLE_PRODUCTOS + "(" + COLUMN_ID + ") ON DELETE CASCADE);"; // 🔹 MEJORA: ON DELETE CASCADE
+                    TABLE_PRODUCTOS + "(" + COLUMN_ID + ") ON DELETE CASCADE);";
 
-    // ===================== CONSTRUCTOR =====================
+    // Constructor
     public DatabaseHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
 
-    // ===================== CREACIÓN Y ACTUALIZACIÓN =====================
+    // ==================================================================
+    // MÉTODOS DE CREACIÓN Y ACTUALIZACIÓN DE BD
+    // ==================================================================
+
     @Override
     public void onCreate(SQLiteDatabase db) {
         db.execSQL(TABLE_CREATE_PRODUCTOS);
         db.execSQL(TABLE_CREATE_USUARIOS);
         db.execSQL(TABLE_CREATE_CARRITO);
-        insertarDatosIniciales(db); // 🔹 NUEVO: Insertar datos iniciales
+        insertarDatosIniciales(db);
     }
 
     @Override
@@ -105,7 +108,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         if (oldVersion < 5)
             db.execSQL("ALTER TABLE " + TABLE_USUARIOS + " ADD COLUMN " + COLUMN_SALT + " TEXT;");
         if (oldVersion < 6) {
-            // 🔹 NUEVO: Agregar campos de categoría y fechas
             db.execSQL("ALTER TABLE " + TABLE_PRODUCTOS + " ADD COLUMN " + COLUMN_CATEGORIA + " TEXT DEFAULT 'General';");
             db.execSQL("ALTER TABLE " + TABLE_PRODUCTOS + " ADD COLUMN " + COLUMN_FECHA_CREACION + " DATETIME DEFAULT CURRENT_TIMESTAMP;");
             db.execSQL("ALTER TABLE " + TABLE_USUARIOS + " ADD COLUMN " + COLUMN_EMAIL + " TEXT;");
@@ -113,22 +115,18 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             db.execSQL("ALTER TABLE " + TABLE_CARRITO + " ADD COLUMN " + COLUMN_FECHA_AGREGADO + " DATETIME DEFAULT CURRENT_TIMESTAMP;");
         }
         if (oldVersion < 7) {
-            // 🔹 MEJORA: Agregar índices para mejor rendimiento
             db.execSQL("CREATE INDEX idx_productos_nombre ON " + TABLE_PRODUCTOS + "(" + COLUMN_NOMBRE + ");");
             db.execSQL("CREATE INDEX idx_productos_categoria ON " + TABLE_PRODUCTOS + "(" + COLUMN_CATEGORIA + ");");
             db.execSQL("CREATE INDEX idx_usuarios_username ON " + TABLE_USUARIOS + "(" + COLUMN_USERNAME + ");");
         }
         if (oldVersion < 8) {
-            // 🔹 MEJORA: Actualizar constraint del carrito
             db.execSQL("DROP TABLE IF EXISTS " + TABLE_CARRITO);
             db.execSQL(TABLE_CREATE_CARRITO);
         }
     }
 
-    // 🔹 NUEVO: Insertar datos iniciales
     private void insertarDatosIniciales(SQLiteDatabase db) {
         try {
-            // Insertar usuario administrador por defecto
             String saltAdmin = generarSalt();
             String hashAdmin = hashPassword("admin123", saltAdmin);
 
@@ -140,14 +138,13 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             adminValues.put(COLUMN_EMAIL, "admin@miapplication.com");
             db.insert(TABLE_USUARIOS, null, adminValues);
 
-            // Insertar algunos productos de ejemplo
             insertarProductoEjemplo(db, "Laptop Gaming", "Laptop para gaming de alta performance", 1299.99, 10);
             insertarProductoEjemplo(db, "Smartphone Android", "Teléfono inteligente con Android 13", 499.99, 25);
             insertarProductoEjemplo(db, "Tablet 10 pulgadas", "Tablet perfecta para trabajo y entretenimiento", 299.99, 15);
 
-            Log.d("DatabaseHelper", "✅ Datos iniciales insertados correctamente");
+            Log.d("DatabaseHelper", "Datos iniciales insertados correctamente");
         } catch (Exception e) {
-            Log.e("DatabaseHelper", "❌ Error insertando datos iniciales: " + e.getMessage());
+            Log.e("DatabaseHelper", "Error insertando datos iniciales: " + e.getMessage());
         }
     }
 
@@ -161,7 +158,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.insert(TABLE_PRODUCTOS, null, values);
     }
 
-    // ===================== MÉTODOS AUXILIARES DE SEGURIDAD =====================
+    // ==================================================================
+    // MÉTODOS AUXILIARES DE SEGURIDAD
+    // ==================================================================
+
     private String generarSalt() {
         byte[] salt = new byte[16];
         new SecureRandom().nextBytes(salt);
@@ -184,9 +184,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
     }
 
-    // ===================== MÉTODOS DE PRODUCTOS =====================
+    // ==================================================================
+    // MÉTODOS DE PRODUCTOS
+    // ==================================================================
 
-    // 🔹 MÉTODO ORIGINAL (para compatibilidad)
     public long insertarProducto(String nombre, String descripcion, double precio, String imagenPath, int stock) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
@@ -199,8 +200,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return db.insert(TABLE_PRODUCTOS, null, values);
     }
 
-    // 🔹 MÉTODO MEJORADO: INSERTAR PRODUCTO CON OBJETO PRODUCTO
-    public long insertarProducto(com.example.myapplication.models.Producto producto) {
+    public long insertarProducto(Producto producto) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put(COLUMN_NOMBRE, producto.getNombre());
@@ -209,11 +209,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         values.put(COLUMN_IMAGEN_PATH, producto.getImagen_path());
         values.put(COLUMN_STOCK, producto.getStock());
         values.put(COLUMN_CANTIDAD, producto.getCantidad());
-        values.put(COLUMN_CATEGORIA, "General"); // 🔹 Valor por defecto
+        values.put(COLUMN_CATEGORIA, "General");
         return db.insert(TABLE_PRODUCTOS, null, values);
     }
 
-    // 🔹 NUEVO MÉTODO: INSERTAR PRODUCTO CON CATEGORÍA
     public long insertarProducto(String nombre, String descripcion, double precio, String imagenPath, int stock, String categoria) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
@@ -227,7 +226,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return db.insert(TABLE_PRODUCTOS, null, values);
     }
 
-    // ====== MÉTODO PARA ACTUALIZAR PRODUCTO ======
     public int actualizarProducto(int productoId, String nombre, String descripcion, double precio, String imagenPath, int stock) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
@@ -239,7 +237,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return db.update(TABLE_PRODUCTOS, values, COLUMN_ID + " = ?", new String[]{String.valueOf(productoId)});
     }
 
-    // 🔹 NUEVO MÉTODO: ACTUALIZAR PRODUCTO COMPLETO
     public int actualizarProducto(int productoId, String nombre, String descripcion, double precio, String imagenPath, int stock, String categoria) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
@@ -252,10 +249,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return db.update(TABLE_PRODUCTOS, values, COLUMN_ID + " = ?", new String[]{String.valueOf(productoId)});
     }
 
-    // ====== ELIMINAR PRODUCTO ======
     public int eliminarProducto(int productoId) {
         SQLiteDatabase db = this.getWritableDatabase();
-        // Antes de eliminar, eliminamos del carrito si existe
         db.delete(TABLE_CARRITO, COLUMN_ID + " = ?", new String[]{String.valueOf(productoId)});
         return db.delete(TABLE_PRODUCTOS, COLUMN_ID + " = ?", new String[]{String.valueOf(productoId)});
     }
@@ -265,14 +260,12 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return db.query(TABLE_PRODUCTOS, null, null, null, null, null, COLUMN_NOMBRE + " ASC");
     }
 
-    // 🔹 NUEVO MÉTODO: OBTENER PRODUCTOS POR CATEGORÍA
     public Cursor obtenerProductosPorCategoria(String categoria) {
         SQLiteDatabase db = this.getReadableDatabase();
         return db.query(TABLE_PRODUCTOS, null, COLUMN_CATEGORIA + " = ?",
                 new String[]{categoria}, null, null, COLUMN_NOMBRE + " ASC");
     }
 
-    // 🔹 NUEVO MÉTODO: BUSCAR PRODUCTOS POR NOMBRE
     public Cursor buscarProductos(String query) {
         SQLiteDatabase db = this.getReadableDatabase();
         return db.query(TABLE_PRODUCTOS, null,
@@ -281,7 +274,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 null, null, COLUMN_NOMBRE + " ASC");
     }
 
-    // 🔹 NUEVO MÉTODO: OBTENER CATEGORÍAS ÚNICAS
     public Cursor obtenerCategorias() {
         SQLiteDatabase db = this.getReadableDatabase();
         return db.query(true, TABLE_PRODUCTOS,
@@ -309,7 +301,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
     }
 
-    // 🔹 MÉTODO MEJORADO: ACTUALIZAR STOCK CON VALIDACIÓN
     public boolean actualizarStockProducto(int productoId, int nuevoStock) {
         if (nuevoStock < 0) {
             Log.w("DatabaseHelper", "Intento de establecer stock negativo: " + nuevoStock);
@@ -323,7 +314,40 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return rowsAffected > 0;
     }
 
-    // ===================== MÉTODOS DE USUARIOS =====================
+    public Producto obtenerProductoPorId(int productoId) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = null;
+        try {
+            cursor = db.query(TABLE_PRODUCTOS,
+                    null,
+                    COLUMN_ID + " = ?",
+                    new String[]{String.valueOf(productoId)},
+                    null, null, null);
+
+            if (cursor != null && cursor.moveToFirst()) {
+                int id = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_ID));
+                String nombre = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_NOMBRE));
+                String descripcion = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_DESCRIPCION));
+                double precio = cursor.getDouble(cursor.getColumnIndexOrThrow(COLUMN_PRECIO));
+                String imagenPath = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_IMAGEN_PATH));
+                int stock = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_STOCK));
+                int cantidad = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_CANTIDAD));
+                String categoria = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_CATEGORIA));
+
+                return new Producto(id, nombre, descripcion, precio, imagenPath, stock, cantidad, categoria);
+            }
+            return null;
+        } finally {
+            if (cursor != null) {
+                cursor.close();
+            }
+        }
+    }
+
+    // ==================================================================
+    // MÉTODOS DE USUARIOS
+    // ==================================================================
+
     public boolean usuarioExiste(String username) {
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor cursor = null;
@@ -387,7 +411,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
     }
 
-    // ===================== MÉTODO: INSERTAR USUARIO =====================
     public long insertarUsuario(String username, String password, String rol) {
         SQLiteDatabase db = this.getWritableDatabase();
         String salt = generarSalt();
@@ -402,7 +425,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return db.insert(TABLE_USUARIOS, null, values);
     }
 
-    // 🔹 NUEVO MÉTODO: INSERTAR USUARIO COMPLETO
     public long insertarUsuario(String username, String password, String rol, String email) {
         SQLiteDatabase db = this.getWritableDatabase();
         String salt = generarSalt();
@@ -418,7 +440,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return db.insert(TABLE_USUARIOS, null, values);
     }
 
-    // ===================== MÉTODO: OBTENER USUARIO POR NOMBRE =====================
     public Usuario obtenerUsuarioPorNombre(String username) {
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor cursor = null;
@@ -447,7 +468,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
     }
 
-    // ===================== MÉTODO: OBTENER TODOS LOS USUARIOS =====================
     public Cursor obtenerTodosLosUsuarios() {
         SQLiteDatabase db = this.getReadableDatabase();
         return db.query(TABLE_USUARIOS,
@@ -456,7 +476,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 COLUMN_USERNAME + " ASC");
     }
 
-    // ===================== MÉTODO PARA ACTUALIZAR USUARIO =====================
     public int actualizarUsuario(String username, String nuevoRol) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
@@ -467,7 +486,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 new String[]{username.toLowerCase(Locale.ROOT).trim()});
     }
 
-    // 🔹 NUEVO MÉTODO: ACTUALIZAR USUARIO COMPLETO
     public int actualizarUsuario(String username, String nuevoRol, String email) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
@@ -479,7 +497,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 new String[]{username.toLowerCase(Locale.ROOT).trim()});
     }
 
-    // ===================== MÉTODO PARA ELIMINAR USUARIO =====================
     public int eliminarUsuario(String username) {
         SQLiteDatabase db = this.getWritableDatabase();
         return db.delete(TABLE_USUARIOS,
@@ -487,7 +504,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 new String[]{username.toLowerCase(Locale.ROOT).trim()});
     }
 
-    // ===================== MÉTODO: OBTENER USUARIO POR ID =====================
     public Usuario obtenerUsuarioPorId(int usuarioId) {
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor cursor = null;
@@ -516,7 +532,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
     }
 
-    // ===================== MÉTODO: CAMBIAR CONTRASEÑA =====================
     public int cambiarPassword(String username, String nuevaPassword) {
         SQLiteDatabase db = this.getWritableDatabase();
         String salt = generarSalt();
@@ -531,11 +546,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 new String[]{username.toLowerCase(Locale.ROOT).trim()});
     }
 
-    // ===================== MÉTODOS NUEVOS PARA GESTIÓN DE USUARIOS =====================
-
-    /**
-     * 🔹 NUEVO: Actualizar el rol de un usuario
-     */
     public int actualizarRolUsuario(String username, String nuevoRol) {
         SQLiteDatabase db = this.getWritableDatabase();
         try {
@@ -549,48 +559,41 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     new String[]{username}
             );
 
-            Log.d("DATABASE", "🔄 Actualizar rol - Usuario: " + username +
+            Log.d("DATABASE", "Actualizar rol - Usuario: " + username +
                     ", Nuevo rol: " + nuevoRol + ", Resultado: " + resultado);
 
             return resultado;
 
         } catch (Exception e) {
-            Log.e("DATABASE", "❌ Error actualizando rol: " + e.getMessage());
+            Log.e("DATABASE", "Error actualizando rol: " + e.getMessage());
             return 0;
         } finally {
             db.close();
         }
     }
 
-    /**
-     * 🔹 NUEVO: Obtener usuarios por rol específico
-     */
     public Cursor obtenerUsuariosPorRol(String rol) {
         SQLiteDatabase db = this.getReadableDatabase();
         try {
             Cursor cursor = db.query(
                     TABLE_USUARIOS,
-                    null, // Todas las columnas
+                    null,
                     COLUMN_ROL + " = ?",
                     new String[]{rol},
                     null,
                     null,
-                    COLUMN_USERNAME + " ASC" // Ordenar por username
+                    COLUMN_USERNAME + " ASC"
             );
 
-            Log.d("DATABASE", "📊 Usuarios por rol '" + rol + "': " + cursor.getCount());
+            Log.d("DATABASE", "Usuarios por rol '" + rol + "': " + cursor.getCount());
             return cursor;
 
         } catch (Exception e) {
-            Log.e("DATABASE", "❌ Error obteniendo usuarios por rol: " + e.getMessage());
+            Log.e("DATABASE", "Error obteniendo usuarios por rol: " + e.getMessage());
             return null;
         }
-        // Nota: El caller debe cerrar el cursor
     }
 
-    /**
-     * 🔹 NUEVO: Contar usuarios por rol
-     */
     public int contarUsuariosPorRol(String rol) {
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor cursor = null;
@@ -601,13 +604,13 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
             if (cursor != null && cursor.moveToFirst()) {
                 int count = cursor.getInt(0);
-                Log.d("DATABASE", "👥 Contar usuarios - Rol: " + rol + ", Total: " + count);
+                Log.d("DATABASE", "Contar usuarios - Rol: " + rol + ", Total: " + count);
                 return count;
             }
             return 0;
 
         } catch (Exception e) {
-            Log.e("DATABASE", "❌ Error contando usuarios por rol: " + e.getMessage());
+            Log.e("DATABASE", "Error contando usuarios por rol: " + e.getMessage());
             return 0;
         } finally {
             if (cursor != null) {
@@ -617,9 +620,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
     }
 
-    /**
-     * 🔹 NUEVO: Obtener todos los roles únicos existentes
-     */
     public Cursor obtenerRolesUnicos() {
         SQLiteDatabase db = this.getReadableDatabase();
         try {
@@ -628,48 +628,40 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     " ORDER BY " + COLUMN_ROL + " ASC";
 
             Cursor cursor = db.rawQuery(query, null);
-            Log.d("DATABASE", "🎯 Roles únicos encontrados: " + cursor.getCount());
+            Log.d("DATABASE", "Roles únicos encontrados: " + cursor.getCount());
             return cursor;
 
         } catch (Exception e) {
-            Log.e("DATABASE", "❌ Error obteniendo roles únicos: " + e.getMessage());
+            Log.e("DATABASE", "Error obteniendo roles únicos: " + e.getMessage());
             return null;
         }
-        // Nota: El caller debe cerrar el cursor
     }
 
-    /**
-     * 🔹 NUEVO: Obtener información completa de usuario por username
-     */
     public Cursor obtenerUsuarioCompleto(String username) {
         SQLiteDatabase db = this.getReadableDatabase();
         try {
             Cursor cursor = db.query(
                     TABLE_USUARIOS,
-                    null, // Todas las columnas
+                    null,
                     COLUMN_USERNAME + " = ?",
                     new String[]{username},
                     null, null, null
             );
 
             if (cursor != null && cursor.moveToFirst()) {
-                Log.d("DATABASE", "✅ Usuario encontrado: " + username);
+                Log.d("DATABASE", "Usuario encontrado: " + username);
             } else {
-                Log.d("DATABASE", "❌ Usuario NO encontrado: " + username);
+                Log.d("DATABASE", "Usuario NO encontrado: " + username);
             }
 
             return cursor;
 
         } catch (Exception e) {
-            Log.e("DATABASE", "❌ Error obteniendo usuario completo: " + e.getMessage());
+            Log.e("DATABASE", "Error obteniendo usuario completo: " + e.getMessage());
             return null;
         }
-        // Nota: El caller debe cerrar el cursor
     }
 
-    /**
-     * 🔹 NUEVO: Obtener estadísticas de usuarios
-     */
     public String obtenerEstadisticasUsuarios() {
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor cursor = null;
@@ -690,11 +682,11 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 } while (cursor.moveToNext());
             }
 
-            Log.d("DATABASE", "📈 Estadísticas: " + estadisticas.toString());
+            Log.d("DATABASE", "Estadísticas: " + estadisticas.toString());
             return estadisticas.toString();
 
         } catch (Exception e) {
-            Log.e("DATABASE", "❌ Error obteniendo estadísticas: " + e.getMessage());
+            Log.e("DATABASE", "Error obteniendo estadísticas: " + e.getMessage());
             return "Error al obtener estadísticas";
         } finally {
             if (cursor != null) {
@@ -704,7 +696,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
     }
 
-    // ===================== MÉTODOS DE CARRITO =====================
+    // ==================================================================
+    // MÉTODOS DE CARRITO
+    // ==================================================================
+
     public long agregarAlCarrito(int productoId, int cantidad) {
         SQLiteDatabase db = this.getWritableDatabase();
         int stockDisponible = obtenerStockProducto(productoId);
@@ -755,10 +750,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return result;
     }
 
-    // 🔹 NUEVO MÉTODO: VACIAR CARRITO
     public int vaciarCarrito() {
         SQLiteDatabase db = this.getWritableDatabase();
-        // Primero restaurar el stock de todos los productos en el carrito
         Cursor cursor = null;
         try {
             cursor = db.rawQuery("SELECT " + COLUMN_ID + ", " + COLUMN_CANTIDAD + " FROM " + TABLE_CARRITO, null);
@@ -776,7 +769,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             }
         }
 
-        // Luego vaciar el carrito
         return db.delete(TABLE_CARRITO, null, null);
     }
 
@@ -828,7 +820,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
     }
 
-    // ===================== MÉTODOS DE REPORTES =====================
+    // ==================================================================
+    // MÉTODOS DE REPORTES
+    // ==================================================================
+
     public int obtenerCantidadUsuarios() {
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor cursor = null;
@@ -880,7 +875,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
     }
 
-    // 🔹 NUEVO MÉTODO: OBTENER PRODUCTOS MÁS VENDIDOS
     public Cursor obtenerProductosMasVendidos(int limite) {
         SQLiteDatabase db = this.getReadableDatabase();
         String query = "SELECT p." + COLUMN_ID + ", p." + COLUMN_NOMBRE + ", p." + COLUMN_PRECIO + ", " +
@@ -893,7 +887,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return db.rawQuery(query, null);
     }
 
-    // 🔹 NUEVO MÉTODO: OBTENER ESTADÍSTICAS GENERALES
     public Cursor obtenerEstadisticasGenerales() {
         SQLiteDatabase db = this.getReadableDatabase();
         String query = "SELECT " +
@@ -905,14 +898,17 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return db.rawQuery(query, null);
     }
 
-    // ===================== CLASE INTERNA DE USUARIO =====================
+    // ==================================================================
+    // CLASE INTERNA DE USUARIO
+    // ==================================================================
+
     public static class Usuario {
         public int id;
         public String username;
         public String password;
         public String salt;
         public String rol;
-        public String email; // 🔹 NUEVO
+        public String email;
 
         public Usuario(int id, String username, String password, String salt, String rol) {
             this.id = id;
@@ -922,7 +918,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             this.rol = rol;
         }
 
-        // 🔹 NUEVO CONSTRUCTOR CON EMAIL
         public Usuario(int id, String username, String password, String salt, String rol, String email) {
             this.id = id;
             this.username = username;
@@ -932,14 +927,12 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             this.email = email;
         }
 
-        // Constructor alternativo sin ID
         public Usuario(String username, String password, String rol) {
             this.username = username;
             this.password = password;
             this.rol = rol;
         }
 
-        // 🔹 NUEVO CONSTRUCTOR CON EMAIL
         public Usuario(String username, String password, String rol, String email) {
             this.username = username;
             this.password = password;

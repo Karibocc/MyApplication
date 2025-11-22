@@ -7,7 +7,9 @@ data class Producto(
     val precio: Double,
     val imagen_path: String = "",
     val stock: Int,
-    var cantidad: Int = 1 // 🔹 Nuevo campo para sincronizar con la BD y el carrito
+    var cantidad: Int = 1,
+    val categoria: String = "General"
+
 ) {
 
     /**
@@ -39,22 +41,20 @@ data class Producto(
         require(id >= 0) { "El ID debe ser positivo" }
         require(nombre.isNotBlank()) { "El nombre no puede estar vacío" }
         require(precio >= 0) { "El precio no puede ser negativo" }
-        require(cantidad >= 0) { "La cantidad no puede ser negativa" } // 🔹 Validación adicional
+        require(cantidad >= 0) { "La cantidad no puede ser negativa" }
     }
 
     /**
-     * 🔹 Método auxiliar para calcular el subtotal del producto en el carrito.
+     * auxiliar para calcular el subtotal del producto en el carrito.
      */
     fun subtotal(): Double {
         return precio * cantidad
     }
 
     /**
-     * 🔹 Método auxiliar para formatear el precio en pesos o dólares.
+     * auxiliar para formatear el precio en pesos o dólares.
      */
     fun precioFormateado(): String {
         return "$${"%.2f".format(precio)}"
     }
 }
-
-

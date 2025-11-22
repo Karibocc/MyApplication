@@ -1,33 +1,30 @@
 package com.example.myapplication.activities
 
-import android.Manifest
-import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
-import android.os.Build
 import android.os.Bundle
 import android.os.Environment
-import android.provider.Settings
-import android.widget.Button
-import android.widget.EditText
-import android.widget.ImageView
-import android.widget.Toast
+import android.view.View
+import android.widget.*
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
-import com.bumptech.glide.Glide
 import com.example.myapplication.R
 import com.example.myapplication.database.DatabaseHelper
-import com.example.myapplication.models.Producto
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.IOException
 import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
+import java.util.*
 
-class AgregarProductoActivity : AppCompatActivity() {
+class GestionProductoActivity : AppCompatActivity() {
 
+    private lateinit var db: DatabaseHelper
     private lateinit var etNombre: EditText
     private lateinit var etDescripcion: EditText
     private lateinit var etPrecio: EditText
@@ -37,80 +34,51 @@ class AgregarProductoActivity : AppCompatActivity() {
     private lateinit var btnEliminar: Button
     private lateinit var ivFoto: ImageView
 
-    private lateinit var dbHelper: DatabaseHelper
+    private var esEdicion: Boolean = false
+    private var productoId: Int = -1
+    private var imagenSeleccionada: String? = null
     private var currentPhotoPath: String? = null
-    private var photoUri: Uri? = null
-    private var productoExistente: Producto? = null
-    private var modoEdicion: Boolean = false
+    private val coroutineScope = CoroutineScope(Dispatchers.Main)
 
-    companion object {
-        const val EXTRA_PRODUCTO_ID = "producto_id"
-    }
-
-    private val takePictureResult = registerForActivityResult(
-        ActivityResultContracts.TakePicture()
-    ) { success ->
-        if (success) {
-            photoUri?.let { uri ->
-                ivFoto.setImageURI(uri)
-                Toast.makeText(this, "Foto capturada exitosamente", Toast.LENGTH_SHORT).show()
-            }
-        } else {
-            Toast.makeText(this, "Captura de foto cancelada", Toast.LENGTH_SHORT).show()
-        }
-    }
-
-    private val pickImageResult = registerForActivityResult(
-        ActivityResultContracts.GetContent()
-    ) { uri ->
-        uri?.let {
-            ivFoto.setImageURI(it)
-            photoUri = it
-            currentPhotoPath = uri.toString()
-            Toast.makeText(this, "Imagen seleccionada", Toast.LENGTH_SHORT).show()
-        }
-    }
-
-    private val cameraPermissionLauncher = registerForActivityResult(
+    private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { isGranted ->
         if (isGranted) {
             tomarFotoConCamara()
-        } else {
-            Toast.makeText(
-                this,
-                "Se necesita permiso de cámara para tomar fotos",
-                Toast.LENGTH_LONG
-            ).show()
-            mostrarDialogoPermisos()
         }
     }
 
-    private val mediaPermissionLauncher = registerForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ) { isGranted ->
-        if (isGranted) {
-            seleccionarDeGaleria()
-        } else {
-            Toast.makeText(
-                this,
-                "Se necesita permiso para acceder a la galería",
-                Toast.LENGTH_LONG
-            ).show()
+    private val takePictureLauncher = registerForActivityResult(
+        ActivityResultContracts.TakePicture()
+    ) { success ->
+        if (success) {
+            currentPhotoPath?.let { path ->
+                imagenSeleccionada = path
+                ivFoto.setImageURI(Uri.parse(path))
+            }
+        }
+    }
+
+    private val pickImageLauncher = registerForActivityResult(
+        ActivityResultContracts.GetContent()
+    ) { uri ->
+        uri?.let {
+            imagenSeleccionada = it.toString()
+            ivFoto.setImageURI(it)
         }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_agregar_producto)
+        setContentView(R.layout.activity_gestion_producto)
 
-        initializeViews()
-        dbHelper = DatabaseHelper(this)
-        verificarModoEdicion()
-        setupClickListeners()
+        db = DatabaseHelper(this)
+        initViews()
+        setupModo()
+        setupListeners()
     }
 
-    private fun initializeViews() {
+    private fun initViews() {
         etNombre = findViewById(R.id.etNombre)
         etDescripcion = findViewById(R.id.etDescripcion)
         etPrecio = findViewById(R.id.etPrecio)
@@ -121,151 +89,89 @@ class AgregarProductoActivity : AppCompatActivity() {
         ivFoto = findViewById(R.id.ivFoto)
     }
 
-    private fun verificarModoEdicion() {
-        val productoId = intent.getIntExtra(EXTRA_PRODUCTO_ID, -1)
+    private fun setupModo() {
+        esEdicion = intent.getBooleanExtra("MODO_EDICION", false)
+        productoId = intent.getIntExtra("PRODUCTO_ID", -1)
 
-        if (productoId != -1) {
-            modoEdicion = true
-            cargarProductoExistente(productoId)
-        } else {
-            modoEdicion = false
-            btnEliminar.visibility = android.view.View.GONE
-        }
-    }
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
-    private fun cargarProductoExistente(productoId: Int) {
-        productoExistente = dbHelper.obtenerProductoPorId(productoId)
-
-        productoExistente?.let { producto ->
-            etNombre.setText(producto.nombre)
-            etDescripcion.setText(producto.descripcion)
-            etPrecio.setText(producto.precio.toString())
-            etStock.setText(producto.stock.toString())
-
-            if (!producto.imagen_path.isNullOrEmpty()) {
-                currentPhotoPath = producto.imagen_path
-                try {
-                    Glide.with(this)
-                        .load(producto.imagen_path)
-                        .placeholder(R.drawable.ic_image_placeholder)
-                        .error(R.drawable.ic_broken_image)
-                        .into(ivFoto)
-                } catch (e: Exception) {
-                }
-            }
-
+        if (esEdicion) {
+            supportActionBar?.title = "Editar Producto"
+            btnEliminar.visibility = View.VISIBLE
             btnGuardar.text = "Actualizar Producto"
-            btnEliminar.visibility = android.view.View.VISIBLE
+        } else {
+            supportActionBar?.title = "Agregar Producto"
+            btnEliminar.visibility = View.GONE
+            btnGuardar.text = "Guardar Producto"
+        }
 
-        } ?: run {
-            Toast.makeText(this, "Producto no encontrado", Toast.LENGTH_SHORT).show()
-            finish()
+        if (esEdicion && productoId != -1) {
+            cargarProductoParaEditar()
         }
     }
 
-    private fun setupClickListeners() {
-        btnTomarFoto.setOnClickListener {
-            mostrarOpcionesFoto()
-        }
-
-        btnGuardar.setOnClickListener {
-            if (modoEdicion) {
-                actualizarProducto()
-            } else {
-                guardarProducto()
-            }
-        }
-
-        btnEliminar.setOnClickListener {
-            mostrarDialogoConfirmarEliminacion()
-        }
-
-        ivFoto.setOnClickListener {
-            mostrarOpcionesFoto()
-        }
+    private fun setupListeners() {
+        btnTomarFoto.setOnClickListener { mostrarOpcionesImagen() }
+        btnGuardar.setOnClickListener { guardarProducto() }
+        btnEliminar.setOnClickListener { mostrarDialogoEliminar() }
     }
 
-    private fun mostrarOpcionesFoto() {
+    private fun mostrarOpcionesImagen() {
         val options = arrayOf("Tomar Foto", "Elegir de Galería", "Cancelar")
 
-        androidx.appcompat.app.AlertDialog.Builder(this)
+        AlertDialog.Builder(this)
             .setTitle("Seleccionar Imagen")
-            .setItems(options) { dialog, which ->
+            .setItems(options) { _, which ->
                 when (which) {
-                    0 -> tomarFotoConCamara()
-                    1 -> seleccionarDeGaleria()
-                    2 -> dialog.dismiss()
+                    0 -> verificarPermisosCamara()
+                    1 -> seleccionarImagenGaleria()
                 }
             }
-            .setCancelable(true)
             .show()
     }
 
-    private fun tomarFotoConCamara() {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
-            == PackageManager.PERMISSION_GRANTED) {
-            iniciarCamara()
-        } else {
-            cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+    private fun verificarPermisosCamara() {
+        when {
+            ContextCompat.checkSelfPermission(
+                this,
+                android.Manifest.permission.CAMERA
+            ) == PackageManager.PERMISSION_GRANTED -> {
+                tomarFotoConCamara()
+            }
+            else -> {
+                requestPermissionLauncher.launch(android.Manifest.permission.CAMERA)
+            }
         }
     }
 
-    private fun iniciarCamara() {
+    private fun tomarFotoConCamara() {
         try {
-            val photoFile = try {
+            val photoFile: File? = try {
                 createImageFile()
             } catch (ex: IOException) {
-                Toast.makeText(this, "Error creando archivo para foto", Toast.LENGTH_SHORT).show()
-                return
+                null
             }
 
-            photoUri = FileProvider.getUriForFile(
-                this,
-                "${packageName}.fileprovider",
-                photoFile
-            )
-
-            takePictureResult.launch(photoUri)
-
+            photoFile?.let { file ->
+                val photoURI: Uri = FileProvider.getUriForFile(
+                    this,
+                    "${packageName}.fileprovider",
+                    file
+                )
+                currentPhotoPath = file.absolutePath
+                takePictureLauncher.launch(photoURI)
+            }
         } catch (e: Exception) {
-            Toast.makeText(this, "Error: ${e.message}", Toast.LENGTH_LONG).show()
+            Toast.makeText(this, "Error al abrir cámara", Toast.LENGTH_SHORT).show()
         }
-    }
-
-    private fun seleccionarDeGaleria() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_MEDIA_IMAGES)
-                == PackageManager.PERMISSION_GRANTED) {
-                abrirGaleria()
-            } else {
-                mediaPermissionLauncher.launch(Manifest.permission.READ_MEDIA_IMAGES)
-            }
-        } else {
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE)
-                == PackageManager.PERMISSION_GRANTED) {
-                abrirGaleria()
-            } else {
-                mediaPermissionLauncher.launch(Manifest.permission.READ_EXTERNAL_STORAGE)
-            }
-        }
-    }
-
-    private fun abrirGaleria() {
-        pickImageResult.launch("image/*")
     }
 
     @Throws(IOException::class)
     private fun createImageFile(): File {
-        val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
-        val imageFileName = "PRODUCTO_${timeStamp}_"
-        val storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES)
-
-        if (storageDir != null && !storageDir.exists()) {
-            storageDir.mkdirs()
-        }
-
+        val timeStamp: String = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
+        val storageDir: File? = getExternalFilesDir(Environment.DIRECTORY_PICTURES)
         return File.createTempFile(
-            imageFileName,
+            "JPEG_${timeStamp}_",
             ".jpg",
             storageDir
         ).apply {
@@ -273,207 +179,148 @@ class AgregarProductoActivity : AppCompatActivity() {
         }
     }
 
-    private fun mostrarDialogoPermisos() {
-        androidx.appcompat.app.AlertDialog.Builder(this)
-            .setTitle("Permiso de Cámara Requerido")
-            .setMessage("Esta aplicación necesita acceso a la cámara para tomar fotos de productos. ¿Desea abrir la configuración para conceder el permiso?")
-            .setPositiveButton("Abrir Configuración") { _, _ ->
-                abrirConfiguracionApp()
-            }
-            .setNegativeButton("Cancelar", null)
-            .show()
+    private fun seleccionarImagenGaleria() {
+        pickImageLauncher.launch("image/*")
     }
 
-    private fun abrirConfiguracionApp() {
-        try {
-            val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
-                data = Uri.fromParts("package", packageName, null)
+    private fun cargarProductoParaEditar() {
+        coroutineScope.launch {
+            try {
+                val producto = withContext(Dispatchers.IO) {
+                    db.obtenerProductoPorId(productoId)
+                }
+
+                producto?.let {
+                    etNombre.setText(it.nombre)
+                    etDescripcion.setText(it.descripcion)
+                    etPrecio.setText(it.precio.toString())
+                    etStock.setText(it.stock.toString())
+
+                    it.imagen_path?.let { imagenPath ->
+                        imagenSeleccionada = imagenPath
+                        try {
+                            ivFoto.setImageURI(Uri.parse(imagenPath))
+                        } catch (e: Exception) {
+                            ivFoto.setImageResource(R.drawable.ic_image_placeholder)
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                Toast.makeText(this@GestionProductoActivity, "Error cargando producto", Toast.LENGTH_SHORT).show()
+                finish()
             }
-            startActivity(intent)
-        } catch (e: Exception) {
-            Toast.makeText(this, "Error abriendo configuración", Toast.LENGTH_SHORT).show()
         }
     }
 
     private fun guardarProducto() {
-        try {
-            if (!validarCampos()) return
-
-            val nombre = etNombre.text.toString().trim()
-            val descripcion = etDescripcion.text.toString().trim()
-            val precio = etPrecio.text.toString().trim().toDouble()
-            val stock = etStock.text.toString().trim().toInt()
-
-            val producto = Producto(
-                id = 0,
-                nombre = nombre,
-                descripcion = descripcion,
-                precio = precio,
-                imagen_path = currentPhotoPath ?: "",
-                stock = stock
-            )
-
-            val resultado = dbHelper.insertarProducto(producto)
-
-            if (resultado != -1L) {
-                Toast.makeText(this, "Producto '$nombre' guardado exitosamente", Toast.LENGTH_LONG).show()
-                limpiarCampos()
-            } else {
-                Toast.makeText(this, "Error guardando el producto", Toast.LENGTH_SHORT).show()
-            }
-
-        } catch (e: Exception) {
-            Toast.makeText(this, "Error crítico: ${e.message}", Toast.LENGTH_LONG).show()
-        }
-    }
-
-    private fun actualizarProducto() {
-        try {
-            if (!validarCampos()) return
-
-            productoExistente?.let { producto ->
-                val nombre = etNombre.text.toString().trim()
-                val descripcion = etDescripcion.text.toString().trim()
-                val precio = etPrecio.text.toString().trim().toDouble()
-                val stock = etStock.text.toString().trim().toInt()
-
-                val filasAfectadas = dbHelper.actualizarProducto(
-                    producto.id,
-                    nombre,
-                    descripcion,
-                    precio,
-                    currentPhotoPath ?: producto.imagen_path,
-                    stock
-                )
-
-                if (filasAfectadas > 0) {
-                    Toast.makeText(this, "Producto '$nombre' actualizado exitosamente", Toast.LENGTH_LONG).show()
-                    finish()
-                } else {
-                    Toast.makeText(this, "Error actualizando el producto", Toast.LENGTH_SHORT).show()
-                }
-            }
-
-        } catch (e: Exception) {
-            Toast.makeText(this, "Error crítico: ${e.message}", Toast.LENGTH_LONG).show()
-        }
-    }
-
-    private fun validarCampos(): Boolean {
         val nombre = etNombre.text.toString().trim()
         val descripcion = etDescripcion.text.toString().trim()
-        val precioTexto = etPrecio.text.toString().trim()
-        val stockTexto = etStock.text.toString().trim()
+        val precio = etPrecio.text.toString().toDoubleOrNull()
+        val stock = etStock.text.toString().toIntOrNull()
 
+        if (validarFormulario(nombre, descripcion, precio, stock)) {
+            coroutineScope.launch {
+                try {
+                    val exito = withContext(Dispatchers.IO) {
+                        if (esEdicion) {
+                            val filasAfectadas = db.actualizarProducto(
+                                productoId,
+                                nombre,
+                                descripcion,
+                                precio ?: 0.0,
+                                imagenSeleccionada,
+                                stock ?: 0
+                            )
+                            filasAfectadas > 0
+                        } else {
+                            val nuevoId = db.insertarProducto(
+                                nombre,
+                                descripcion,
+                                precio ?: 0.0,
+                                imagenSeleccionada,
+                                stock ?: 0
+                            )
+                            nuevoId > 0
+                        }
+                    }
+
+                    if (exito) {
+                        val mensaje = if (esEdicion) "Producto actualizado" else "Producto agregado"
+                        Toast.makeText(this@GestionProductoActivity, mensaje, Toast.LENGTH_SHORT).show()
+                        setResult(RESULT_OK)
+                        finish()
+                    } else {
+                        Toast.makeText(this@GestionProductoActivity, "Error guardando producto", Toast.LENGTH_SHORT).show()
+                    }
+                } catch (e: Exception) {
+                    Toast.makeText(this@GestionProductoActivity, "Error guardando producto", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
+
+    private fun validarFormulario(nombre: String, descripcion: String, precio: Double?, stock: Int?): Boolean {
         if (nombre.isEmpty()) {
-            etNombre.error = "El nombre es requerido"
-            etNombre.requestFocus()
+            etNombre.error = "Nombre requerido"
             return false
         }
 
         if (descripcion.isEmpty()) {
-            etDescripcion.error = "La descripción es requerida"
-            etDescripcion.requestFocus()
+            etDescripcion.error = "Descripción requerida"
             return false
         }
 
-        if (precioTexto.isEmpty()) {
-            etPrecio.error = "El precio es requerido"
-            etPrecio.requestFocus()
+        if (precio == null || precio <= 0) {
+            etPrecio.error = "Precio válido requerido"
             return false
         }
 
-        if (stockTexto.isEmpty()) {
-            etStock.error = "El stock es requerido"
-            etStock.requestFocus()
-            return false
-        }
-
-        val precio = try {
-            precioTexto.toDouble()
-        } catch (e: NumberFormatException) {
-            etPrecio.error = "Precio inválido"
-            etPrecio.requestFocus()
-            return false
-        }
-
-        if (precio <= 0) {
-            etPrecio.error = "El precio debe ser mayor a 0"
-            etPrecio.requestFocus()
-            return false
-        }
-
-        val stock = try {
-            stockTexto.toInt()
-        } catch (e: NumberFormatException) {
-            etStock.error = "Stock inválido"
-            etStock.requestFocus()
-            return false
-        }
-
-        if (stock < 0) {
-            etStock.error = "El stock no puede ser negativo"
-            etStock.requestFocus()
+        if (stock == null || stock < 0) {
+            etStock.error = "Stock válido requerido"
             return false
         }
 
         return true
     }
 
-    private fun mostrarDialogoConfirmarEliminacion() {
-        productoExistente?.let { producto ->
-            androidx.appcompat.app.AlertDialog.Builder(this)
-                .setTitle("Confirmar Eliminación")
-                .setMessage("¿Está seguro que desea eliminar el producto \"${producto.nombre}\"? Esta acción no se puede deshacer.")
-                .setPositiveButton("Eliminar") { dialog, _ ->
-                    eliminarProducto()
-                    dialog.dismiss()
-                }
-                .setNegativeButton("Cancelar") { dialog, _ ->
-                    dialog.dismiss()
-                }
-                .create()
-                .show()
-        }
+    private fun mostrarDialogoEliminar() {
+        AlertDialog.Builder(this)
+            .setTitle("Eliminar Producto")
+            .setMessage("¿Estás seguro de que quieres eliminar este producto?")
+            .setPositiveButton("Eliminar") { _, _ ->
+                eliminarProducto()
+            }
+            .setNegativeButton("Cancelar", null)
+            .show()
     }
 
     private fun eliminarProducto() {
-        try {
-            productoExistente?.let { producto ->
-                val filasAfectadas = dbHelper.eliminarProducto(producto.id)
+        coroutineScope.launch {
+            try {
+                val eliminado = withContext(Dispatchers.IO) {
+                    db.eliminarProducto(productoId) > 0
+                }
 
-                if (filasAfectadas > 0) {
-                    Toast.makeText(this, "Producto '${producto.nombre}' eliminado exitosamente", Toast.LENGTH_LONG).show()
+                if (eliminado) {
+                    Toast.makeText(this@GestionProductoActivity, "Producto eliminado", Toast.LENGTH_SHORT).show()
+                    setResult(RESULT_OK)
                     finish()
                 } else {
-                    Toast.makeText(this, "Error eliminando el producto", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@GestionProductoActivity, "Error eliminando producto", Toast.LENGTH_SHORT).show()
                 }
+            } catch (e: Exception) {
+                Toast.makeText(this@GestionProductoActivity, "Error eliminando producto", Toast.LENGTH_SHORT).show()
             }
-        } catch (e: Exception) {
-            Toast.makeText(this, "Error crítico: ${e.message}", Toast.LENGTH_LONG).show()
         }
     }
 
-    private fun limpiarCampos() {
-        etNombre.text.clear()
-        etDescripcion.text.clear()
-        etPrecio.text.clear()
-        etStock.text.clear()
-
-        ivFoto.setImageResource(android.R.color.transparent)
-        currentPhotoPath = null
-        photoUri = null
-
-        etNombre.requestFocus()
+    override fun onSupportNavigateUp(): Boolean {
+        onBackPressed()
+        return true
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        try {
-            if (::dbHelper.isInitialized) {
-                dbHelper.close()
-            }
-        } catch (e: Exception) {
-        }
+        db.close()
     }
 }

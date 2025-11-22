@@ -14,49 +14,39 @@
         android:orientation="vertical"
         android:padding="24dp">
 
-        <!-- Header con icono -->
+        <!-- Header sin icono -->
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:gravity="center"
+            android:layout_height="123dp"
             android:layout_marginBottom="32dp"
+            android:gravity="center"
+            android:orientation="vertical"
             android:paddingVertical="20dp">
-
-            <!-- Icono decorativo -->
-            <ImageView
-                android:layout_width="80dp"
-                android:layout_height="80dp"
-                android:src="@android:drawable/ic_lock_lock"
-                android:background="#8B5CF6"
-                android:padding="16dp"
-                app:tint="@android:color/white" />
 
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Panel de Administración"
-                android:textSize="28sp"
-                android:textStyle="bold"
-                android:textColor="@android:color/white"
                 android:gravity="center"
-                android:layout_marginTop="16dp"
-                android:letterSpacing="0.02" />
+                android:letterSpacing="0.02"
+                android:text="Panel de Administración"
+                android:textColor="@android:color/white"
+                android:textSize="28sp"
+                android:textStyle="bold" />
 
             <TextView
                 android:id="@+id/tvAdminInfo"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Cargando información..."
-                android:textSize="14sp"
-                android:textColor="#E3F2FD"
-                android:gravity="center"
                 android:layout_marginTop="8dp"
-                android:lineSpacingExtra="4dp" />
+                android:gravity="center"
+                android:lineSpacingExtra="4dp"
+                android:text="Cargando información..."
+                android:textColor="#E3F2FD"
+                android:textSize="14sp" />
 
         </LinearLayout>
 
-        <!-- Tarjeta de funcionalidades -->
+        <!-- Tarjeta -->
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -67,198 +57,127 @@
 
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="409dp"
                 android:orientation="vertical"
                 android:padding="8dp">
 
                 <!-- Gestión de Productos -->
                 <LinearLayout
+                    android:id="@+id/btnGestionarProductos"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:padding="20dp"
+                    android:layout_height="96dp"
+                    android:layout_margin="8dp"
                     android:background="?attr/selectableItemBackground"
+                    android:backgroundTint="#F3F4F6"
                     android:clickable="true"
                     android:focusable="true"
-                    android:id="@+id/btnGestionarProductos"
-                    android:layout_margin="8dp"
-                    android:backgroundTint="#F3F4F6">
+                    android:orientation="vertical"
+                    android:padding="20dp">
 
-                    <ImageView
-                        android:layout_width="40dp"
-                        android:layout_height="40dp"
-                        android:src="@android:drawable/ic_menu_agenda"
-                        android:background="#3B82F6"
-                        android:padding="8dp"
-                        app:tint="@android:color/white"
-                        android:layout_marginEnd="16dp" />
-
-                    <LinearLayout
-                        android:layout_width="0dp"
+                    <TextView
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:orientation="vertical">
+                        android:text="Gestión de Productos"
+                        android:textColor="#1F2937"
+                        android:textSize="18sp"
+                        android:textStyle="bold" />
 
-                        <TextView
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:text="Gestión de Productos"
-                            android:textSize="16sp"
-                            android:textStyle="bold"
-                            android:textColor="#1F2937" />
-
-                        <TextView
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:text="Agregar, editar y eliminar productos"
-                            android:textSize="12sp"
-                            android:textColor="#6B7280"
-                            android:layout_marginTop="2dp" />
-
-                    </LinearLayout>
-
-                    <ImageView
-                        android:layout_width="24dp"
-                        android:layout_height="24dp"
-                        android:src="@android:drawable/ic_media_next"
-                        app:tint="#9CA3AF" />
-
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="Agregar, editar y eliminar productos"
+                        android:textColor="#6B7280"
+                        android:textSize="13sp" />
                 </LinearLayout>
 
                 <!-- Gestión de Usuarios -->
                 <LinearLayout
+                    android:id="@+id/btnGestionarUsuarios"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:padding="20dp"
+                    android:layout_height="99dp"
+                    android:layout_margin="8dp"
                     android:background="?attr/selectableItemBackground"
+                    android:backgroundTint="#F3F4F6"
                     android:clickable="true"
                     android:focusable="true"
-                    android:id="@+id/btnGestionarUsuarios"
-                    android:layout_margin="8dp"
-                    android:backgroundTint="#F3F4F6">
+                    android:orientation="vertical"
+                    android:padding="20dp">
 
-                    <ImageView
-                        android:layout_width="40dp"
-                        android:layout_height="40dp"
-                        android:src="@android:drawable/ic_menu_my_calendar"
-                        android:background="#10B981"
-                        android:padding="8dp"
-                        app:tint="@android:color/white"
-                        android:layout_marginEnd="16dp" />
-
-                    <LinearLayout
-                        android:layout_width="0dp"
+                    <TextView
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:orientation="vertical">
+                        android:text="Gestión de Usuarios"
+                        android:textColor="#1F2937"
+                        android:textSize="18sp"
+                        android:textStyle="bold" />
 
-                        <TextView
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:text="Gestión de Usuarios"
-                            android:textSize="16sp"
-                            android:textStyle="bold"
-                            android:textColor="#1F2937" />
-
-                        <TextView
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:text="Administrar usuarios y permisos"
-                            android:textSize="12sp"
-                            android:textColor="#6B7280"
-                            android:layout_marginTop="2dp" />
-
-                    </LinearLayout>
-
-                    <ImageView
-                        android:layout_width="24dp"
-                        android:layout_height="24dp"
-                        android:src="@android:drawable/ic_media_next"
-                        app:tint="#9CA3AF" />
-
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="Administrar usuarios y permisos"
+                        android:textColor="#6B7280"
+                        android:textSize="13sp" />
                 </LinearLayout>
 
                 <!-- Ver Reportes -->
                 <LinearLayout
+                    android:id="@+id/btnVerReportes"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:padding="20dp"
+                    android:layout_height="100dp"
+                    android:layout_margin="8dp"
                     android:background="?attr/selectableItemBackground"
+                    android:backgroundTint="#F3F4F6"
                     android:clickable="true"
                     android:focusable="true"
-                    android:id="@+id/btnVerReportes"
-                    android:layout_margin="8dp"
-                    android:backgroundTint="#F3F4F6">
+                    android:orientation="vertical"
+                    android:padding="20dp">
 
-                    <ImageView
-                        android:layout_width="40dp"
-                        android:layout_height="40dp"
-                        android:src="@android:drawable/ic_menu_info_details"
-                        android:background="#F59E0B"
-                        android:padding="8dp"
-                        app:tint="@android:color/white"
-                        android:layout_marginEnd="16dp" />
-
-                    <LinearLayout
-                        android:layout_width="0dp"
+                    <TextView
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:orientation="vertical">
+                        android:text="Ver Reportes"
+                        android:textColor="#1F2937"
+                        android:textSize="18sp"
+                        android:textStyle="bold" />
 
-                        <TextView
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:text="Ver Reportes"
-                            android:textSize="16sp"
-                            android:textStyle="bold"
-                            android:textColor="#1F2937" />
-
-                        <TextView
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:text="Estadísticas y análisis del sistema"
-                            android:textSize="12sp"
-                            android:textColor="#6B7280"
-                            android:layout_marginTop="2dp" />
-
-                    </LinearLayout>
-
-                    <ImageView
-                        android:layout_width="24dp"
-                        android:layout_height="24dp"
-                        android:src="@android:drawable/ic_media_next"
-                        app:tint="#9CA3AF" />
-
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="Estadísticas y análisis del sistema"
+                        android:textColor="#6B7280"
+                        android:textSize="13sp" />
                 </LinearLayout>
 
             </LinearLayout>
 
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- Botón de cerrar sesión -->
+        <!-- Botón cerrar sesión -->
+
+        <!-- Footer -->
         <Button
             android:id="@+id/btnCerrarSesion"
             android:layout_width="match_parent"
-            android:layout_height="56dp"
-            android:text="Cerrar Sesión"
-            android:textSize="16sp"
-            android:textColor="#DC2626"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
             android:background="@android:color/white"
             android:paddingVertical="14dp"
-            android:layout_marginTop="8dp" />
+            android:text="Cerrar Sesión"
+            android:textColor="#DC2626"
+            android:textSize="16sp" />
 
-        <!-- Footer -->
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Sistema de Administración v1.0"
-            android:textSize="12sp"
-            android:textColor="#E5E7EB"
-            android:gravity="center"
             android:layout_marginTop="24dp"
-            android:padding="12dp" />
+            android:gravity="center"
+            android:padding="12dp"
+            android:text="Sistema de Administración v1.0"
+            android:textColor="#E5E7EB"
+            android:textSize="12sp" />
 
     </LinearLayout>
 

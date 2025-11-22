@@ -23,14 +23,12 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="16dp"
-        app:boxCornerRadiusTopStart="12dp"
-        app:boxCornerRadiusTopEnd="12dp"
-        app:boxCornerRadiusBottomStart="12dp"
-        app:boxCornerRadiusBottomEnd="12dp"
+        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
         app:boxStrokeColor="@color/colorPrimary"
-        app:endIconMode="clear_text"
         app:startIconDrawable="@android:drawable/ic_menu_edit"
-        style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
+        app:endIconMode="clear_text"
+        app:startIconTint="@color/colorPrimary"
+        app:endIconTint="@color/colorPrimary">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/etUsername"
@@ -39,7 +37,8 @@
             android:hint="Nombre de usuario"
             android:inputType="textPersonName"
             android:maxLines="1"
-            android:textSize="16sp" />
+            android:textSize="16sp"
+            android:textColor="@android:color/black" />
 
     </com.google.android.material.textfield.TextInputLayout>
 
@@ -48,14 +47,12 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="16dp"
-        app:boxCornerRadiusTopStart="12dp"
-        app:boxCornerRadiusTopEnd="12dp"
-        app:boxCornerRadiusBottomStart="12dp"
-        app:boxCornerRadiusBottomEnd="12dp"
+        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
         app:boxStrokeColor="@color/colorPrimary"
-        app:endIconMode="clear_text"
         app:startIconDrawable="@android:drawable/ic_dialog_email"
-        style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
+        app:endIconMode="clear_text"
+        app:startIconTint="@color/colorPrimary"
+        app:endIconTint="@color/colorPrimary">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/etEmail"
@@ -64,23 +61,22 @@
             android:hint="Correo electrónico"
             android:inputType="textEmailAddress"
             android:maxLines="1"
-            android:textSize="16sp" />
+            android:textSize="16sp"
+            android:textColor="@android:color/black" />
 
     </com.google.android.material.textfield.TextInputLayout>
 
-    <!-- Campo Contraseña (si lo necesitas) -->
+    <!-- Campo Contraseña -->
     <com.google.android.material.textfield.TextInputLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="16dp"
-        app:boxCornerRadiusTopStart="12dp"
-        app:boxCornerRadiusTopEnd="12dp"
-        app:boxCornerRadiusBottomStart="12dp"
-        app:boxCornerRadiusBottomEnd="12dp"
+        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
         app:boxStrokeColor="@color/colorPrimary"
-        app:endIconMode="password_toggle"
         app:startIconDrawable="@android:drawable/ic_lock_lock"
-        style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
+        app:endIconMode="password_toggle"
+        app:startIconTint="@color/colorPrimary"
+        app:endIconTint="@color/colorPrimary">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/etPassword"
@@ -89,11 +85,12 @@
             android:hint="Contraseña"
             android:inputType="textPassword"
             android:maxLines="1"
-            android:textSize="16sp" />
+            android:textSize="16sp"
+            android:textColor="@android:color/black" />
 
     </com.google.android.material.textfield.TextInputLayout>
 
-    <!-- Spinner de Rol con estilo mejorado -->
+    <!-- Spinner de Rol -->
     <com.google.android.material.card.MaterialCardView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -108,7 +105,7 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:padding="16dp"
-            android:background="?attr/selectableItemBackground">
+            android:background="@android:color/white">
 
             <ImageView
                 android:layout_width="24dp"
@@ -124,13 +121,14 @@
                 android:layout_weight="1"
                 android:background="@android:color/transparent"
                 android:padding="8dp"
-                android:spinnerMode="dropdown" />
+                android:spinnerMode="dropdown"
+                android:popupBackground="@android:color/white" />
 
         </LinearLayout>
 
     </com.google.android.material.card.MaterialCardView>
 
-    <!-- Texto de ayuda para el spinner -->
+    <!-- Texto de ayuda del Spinner -->
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

@@ -1,7 +1,8 @@
 package com.example.myapplication.activities
 
+import android.content.Intent
 import android.os.Bundle
-import android.util.Log
+import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -9,7 +10,9 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.myapplication.R
 import com.example.myapplication.adapters.ProductoAdapter
 import com.example.myapplication.database.DatabaseHelper
+import com.example.myapplication.managers.SessionManager
 import com.example.myapplication.models.Producto
+import com.google.android.material.floatingactionbutton.FloatingActionButton
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -20,26 +23,54 @@ class ProductosActivity : AppCompatActivity() {
     private lateinit var recyclerView: RecyclerView
     private lateinit var adapter: ProductoAdapter
     private lateinit var db: DatabaseHelper
+    private lateinit var fabAgregar: FloatingActionButton
     private val coroutineScope = CoroutineScope(Dispatchers.Main)
-
-    companion object {
-        private const val TAG = "ProductosActivity"
-    }
+    private var isAdmin: Boolean = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_productos)
 
-        // Configurar toolbar
-        supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        supportActionBar?.title = "Catálogo de Productos"
+        isAdmin = SessionManager.getCurrentUserRole(this) == "admin"
 
+        setupUI()
+        setupDatabase()
+        setupRecyclerView()
+        cargarProductos()
+    }
+
+    private fun setupUI() {
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        supportActionBar?.title = if (isAdmin) "Gestión de Productos" else "Catálogo de Productos"
+
+        fabAgregar = findViewById(R.id.fabAgregar)
+        fabAgregar.visibility = if (isAdmin) View.VISIBLE else View.GONE
+        fabAgregar.setOnClickListener { navegarAAgregarProducto() }
+    }
+
+    private fun setupDatabase() {
+        db = DatabaseHelper(this)
+    }
+
+    private fun setupRecyclerView() {
         recyclerView = findViewById(R.id.recyclerViewProductos)
         recyclerView.layoutManager = LinearLayoutManager(this)
 
-        db = DatabaseHelper(this)
-
-        cargarProductos()
+        adapter = ProductoAdapter(
+            context = this,
+            productos = emptyList(),
+            onItemClick = { producto ->
+                if (isAdmin) {
+                    editarProducto(producto)
+                } else {
+                    agregarAlCarrito(producto)
+                }
+            },
+            onEditClick = { producto -> editarProducto(producto) },
+            onDeleteClick = { producto -> eliminarProducto(producto) },
+            isAdmin = isAdmin
+        )
+        recyclerView.adapter = adapter
     }
 
     private fun cargarProductos() {
@@ -49,29 +80,23 @@ class ProductosActivity : AppCompatActivity() {
                     val cursor = db.obtenerTodosLosProductos()
                     cursor.toProductoList()
                 }
-
-                adapter = ProductoAdapter(
-                    context = this@ProductosActivity,
-                    productos = productos,
-                    onItemClick = { producto -> agregarAlCarrito(producto) },
-                    onEditClick = { producto ->
-                        // No permitir edición para clientes
-                        Toast.makeText(this@ProductosActivity, "Solo administradores pueden editar", Toast.LENGTH_SHORT).show()
-                    },
-                    onDeleteClick = { producto ->
-                        // No permitir eliminación para clientes
-                        Toast.makeText(this@ProductosActivity, "Solo administradores pueden eliminar", Toast.LENGTH_SHORT).show()
-                    }
-                )
-
-                recyclerView.adapter = adapter
-                Log.d(TAG, "✅ ${productos.size} productos cargados")
-
+                adapter.updateProductos(productos)
             } catch (e: Exception) {
-                Log.e(TAG, "❌ ERROR cargando productos: ${e.message}", e)
                 Toast.makeText(this@ProductosActivity, "Error cargando productos", Toast.LENGTH_SHORT).show()
             }
         }
+    }
+
+    private fun navegarAAgregarProducto() {
+        val intent = Intent(this, GestionProductoActivity::class.java)
+        startActivity(intent)
+    }
+
+    private fun editarProducto(producto: Producto) {
+        val intent = Intent(this, GestionProductoActivity::class.java)
+        intent.putExtra("MODO_EDICION", true)
+        intent.putExtra("PRODUCTO_ID", producto.id)
+        startActivity(intent)
     }
 
     private fun agregarAlCarrito(producto: Producto) {
@@ -80,35 +105,38 @@ class ProductosActivity : AppCompatActivity() {
                 val resultado = withContext(Dispatchers.IO) {
                     db.agregarAlCarrito(producto.id, 1)
                 }
-
-                if (resultado > 0) {
-                    Toast.makeText(this@ProductosActivity, "${producto.nombre} agregado al carrito", Toast.LENGTH_SHORT).show()
-                } else {
-                    Toast.makeText(this@ProductosActivity, "No hay stock disponible de ${producto.nombre}", Toast.LENGTH_SHORT).show()
-                }
+                val mensaje = if (resultado > 0)
+                    "${producto.nombre} agregado al carrito"
+                else
+                    "No hay stock disponible de ${producto.nombre}"
+                Toast.makeText(this@ProductosActivity, mensaje, Toast.LENGTH_SHORT).show()
             } catch (e: Exception) {
                 Toast.makeText(this@ProductosActivity, "Error agregando al carrito", Toast.LENGTH_SHORT).show()
             }
         }
     }
 
-    // Extensión para convertir Cursor a List<Producto>
-    private fun android.database.Cursor.toProductoList(): List<Producto> {
-        return mutableListOf<Producto>().apply {
-            if (moveToFirst()) {
-                do {
-                    add(Producto(
-                        id = getInt(getColumnIndexOrThrow("id")),
-                        nombre = getString(getColumnIndexOrThrow("nombre")),
-                        descripcion = getString(getColumnIndexOrThrow("descripcion")),
-                        precio = getDouble(getColumnIndexOrThrow("precio")),
-                        imagen_path = getString(getColumnIndexOrThrow("imagen_path")),
-                        stock = getInt(getColumnIndexOrThrow("stock"))
-                    ))
-                } while (moveToNext())
+    private fun eliminarProducto(producto: Producto) {
+        coroutineScope.launch {
+            try {
+                val eliminado = withContext(Dispatchers.IO) {
+                    db.eliminarProducto(producto.id) > 0
+                }
+                if (eliminado) {
+                    adapter.eliminarProducto(producto.id)
+                    Toast.makeText(this@ProductosActivity, "${producto.nombre} eliminado", Toast.LENGTH_SHORT).show()
+                } else {
+                    Toast.makeText(this@ProductosActivity, "Error eliminando producto", Toast.LENGTH_SHORT).show()
+                }
+            } catch (e: Exception) {
+                Toast.makeText(this@ProductosActivity, "Error eliminando producto", Toast.LENGTH_SHORT).show()
             }
-            close()
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        cargarProductos()
     }
 
     override fun onSupportNavigateUp(): Boolean {
@@ -119,5 +147,29 @@ class ProductosActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         db.close()
+    }
+
+    private fun android.database.Cursor.toProductoList(): List<Producto> {
+        val productoList = mutableListOf<Producto>()
+        try {
+            if (moveToFirst()) {
+                do {
+                    val producto = Producto(
+                        id = getInt(getColumnIndex("id")),
+                        nombre = getString(getColumnIndex("nombre")) ?: "",
+                        descripcion = getString(getColumnIndex("descripcion")) ?: "",
+                        precio = getDouble(getColumnIndex("precio")),
+                        imagen_path = getString(getColumnIndex("imagen_path")) ?: "",
+                        stock = getInt(getColumnIndex("stock"))
+                    )
+                    productoList.add(producto)
+                } while (moveToNext())
+            }
+        } catch (e: Exception) {
+            // Manejar error silenciosamente
+        } finally {
+            close()
+        }
+        return productoList
     }
 }

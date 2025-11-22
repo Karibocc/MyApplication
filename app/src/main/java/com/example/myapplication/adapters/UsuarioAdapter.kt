@@ -1,6 +1,7 @@
 package com.example.myapplication.adapters
 
 import android.content.Context
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -8,9 +9,6 @@ import android.widget.*
 import com.example.myapplication.R
 import com.example.myapplication.models.Usuario
 
-/**
- * Adapter personalizado para mostrar la lista de usuarios.
- */
 class UsuarioAdapter(
     context: Context,
     private val usuarios: MutableList<Usuario>,
@@ -32,41 +30,47 @@ class UsuarioAdapter(
         val btnEliminar = itemView.findViewById<Button>(R.id.btnEliminar)
         val btnCambiarRol = itemView.findViewById<Button>(R.id.btnCambiarRol)
 
-        // Configurar los textos
         tvUsername.text = "Usuario: ${usuario.username}"
-        tvRol.text = "Rol: ${usuario.rol.replaceFirstChar { it.uppercase() }}"
-
-        // Mostrar email si está disponible
+        tvRol.text = "Rol: ${usuario.rol?.replaceFirstChar { it.uppercase() } ?: "Usuario"}"
         tvEmail.text = "Email: ${usuario.email ?: usuario.username}"
 
-        // Configurar listeners de los botones
         btnEditar.setOnClickListener {
+            Log.d("USUARIO_ADAPTER", "Editando: ${usuario.username}, Posición: $position")
             onEditarClickListener(usuario, position)
         }
 
         btnEliminar.setOnClickListener {
+            Log.d("USUARIO_ADAPTER", "Eliminando: ${usuario.username}, Posición: $position")
             onEliminarClickListener(usuario, position)
         }
 
         btnCambiarRol.setOnClickListener {
+            Log.d("USUARIO_ADAPTER", "Cambiando rol: ${usuario.username}, Posición: $position")
             onCambiarRolClickListener(usuario, position)
         }
 
         return itemView
     }
 
-    /**
-     * Actualiza la lista de usuarios y notifica el cambio al ListView.
-     */
+    override fun getCount(): Int {
+        return usuarios.size
+    }
+
+    override fun getItem(position: Int): Usuario {
+        return usuarios[position]
+    }
+
+    override fun getItemId(position: Int): Long {
+        return position.toLong()
+    }
+
     fun actualizarLista(nuevaLista: List<Usuario>) {
         usuarios.clear()
         usuarios.addAll(nuevaLista)
         notifyDataSetChanged()
+        Log.d("USUARIO_ADAPTER", "Lista actualizada - ${usuarios.size} usuarios")
     }
 
-    /**
-     * 🔹 NUEVO: Método para obtener un usuario por su posición
-     */
     fun obtenerUsuarioEnPosicion(position: Int): Usuario? {
         return if (position in 0 until usuarios.size) {
             usuarios[position]
@@ -75,50 +79,42 @@ class UsuarioAdapter(
         }
     }
 
-    /**
-     * 🔹 NUEVO: Método para eliminar un usuario por su posición
-     */
     fun eliminarUsuario(position: Int): Usuario? {
         return if (position in 0 until usuarios.size) {
             val usuarioEliminado = usuarios.removeAt(position)
             notifyDataSetChanged()
+            Log.d("USUARIO_ADAPTER", "Usuario eliminado: ${usuarioEliminado.username}")
             usuarioEliminado
         } else {
             null
         }
     }
 
-    /**
-     * 🔹 NUEVO: Método para eliminar un usuario por su username
-     */
     fun eliminarUsuarioPorUsername(username: String): Boolean {
         val iterator = usuarios.iterator()
         while (iterator.hasNext()) {
-            if (iterator.next().username == username) {
+            val usuario = iterator.next()
+            if (usuario.username == username) {
                 iterator.remove()
                 notifyDataSetChanged()
+                Log.d("USUARIO_ADAPTER", "Usuario eliminado por username: $username")
                 return true
             }
         }
         return false
     }
 
-    /**
-     * 🔹 NUEVO: Método para actualizar un usuario específico
-     */
     fun actualizarUsuario(position: Int, usuarioActualizado: Usuario): Boolean {
         return if (position in 0 until usuarios.size) {
             usuarios[position] = usuarioActualizado
             notifyDataSetChanged()
+            Log.d("USUARIO_ADAPTER", "Usuario actualizado: ${usuarioActualizado.username}")
             true
         } else {
             false
         }
     }
 
-    /**
-     * 🔹 NUEVO: Método para filtrar usuarios por rol
-     */
     fun filtrarPorRol(rol: String): List<Usuario> {
         return if (rol.isBlank()) {
             usuarios
@@ -127,30 +123,18 @@ class UsuarioAdapter(
         }
     }
 
-    /**
-     * 🔹 NUEVO: Método para obtener la cantidad de usuarios por rol
-     */
     fun contarUsuariosPorRol(rol: String): Int {
         return usuarios.count { it.rol.equals(rol, ignoreCase = true) }
     }
 
-    /**
-     * 🔹 NUEVO: Método para verificar si el adapter está vacío
-     */
     fun estaVacio(): Boolean {
         return usuarios.isEmpty()
     }
 
-    /**
-     * 🔹 NUEVO: Método para obtener todos los roles únicos
-     */
     fun obtenerRolesUnicos(): List<String> {
-        return usuarios.map { it.rol }.distinct()
+        return usuarios.map { it.rol ?: "Usuario" }.distinct()
     }
 
-    /**
-     * 🔹 NUEVO: Método para buscar usuarios por nombre
-     */
     fun buscarUsuarios(query: String): List<Usuario> {
         return if (query.isBlank()) {
             usuarios
@@ -162,9 +146,6 @@ class UsuarioAdapter(
         }
     }
 
-    /**
-     * 🔹 NUEVO: Método para obtener la lista actual de usuarios
-     */
     fun obtenerListaActual(): List<Usuario> {
         return usuarios.toList()
     }

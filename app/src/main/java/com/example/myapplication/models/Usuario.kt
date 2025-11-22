@@ -40,7 +40,7 @@ data class Usuario(
         fun registrarUsuario(context: Context, nuevoUsuario: Usuario): Boolean {
             val dbHelper = DatabaseHelper(context)
 
-            // 🔥 AGREGAR LOGS PARA DEBUG
+            // AGREGAR LOGS PARA DEBUG
             Log.d("REGISTRO_USUARIO", "=== INICIANDO REGISTRO EN BD ===")
             Log.d("REGISTRO_USUARIO", "Usuario: ${nuevoUsuario.username}")
             Log.d("REGISTRO_USUARIO", "Rol: ${nuevoUsuario.rol}")
@@ -61,11 +61,11 @@ data class Usuario(
             Log.d("REGISTRO_USUARIO", "Resultado de inserción en BD: $resultado")
 
             return if (resultado != -1L) {
-                Log.i("REGISTRO_USUARIO", "✅ Inserción exitosa en BD, ID: $resultado")
+                Log.i("REGISTRO_USUARIO", "Inserción exitosa en BD, ID: $resultado")
                 Toast.makeText(context, "Usuario registrado con éxito", Toast.LENGTH_SHORT).show()
                 true
             } else {
-                Log.e("REGISTRO_USUARIO", "❌ Error en inserción BD, resultado: $resultado")
+                Log.e("REGISTRO_USUARIO", "Error en inserción BD, resultado: $resultado")
                 Toast.makeText(context, "Error al registrar usuario", Toast.LENGTH_SHORT).show()
                 false
             }
@@ -270,18 +270,18 @@ data class Usuario(
         fun actualizarRolUsuario(context: Context, username: String, nuevoRol: String): Boolean {
             val dbHelper = DatabaseHelper(context)
             return try {
-                Log.d("ACTUALIZAR_ROL", "🔄 Actualizando rol de usuario: $username a $nuevoRol")
+                Log.d("ACTUALIZAR_ROL", "Actualizando rol de usuario: $username a $nuevoRol")
                 val resultado = dbHelper.actualizarRolUsuario(username, nuevoRol)
 
                 if (resultado > 0) {
-                    Log.i("ACTUALIZAR_ROL", "✅ Rol actualizado exitosamente para: $username")
+                    Log.i("ACTUALIZAR_ROL", "Rol actualizado exitosamente para: $username")
                     true
                 } else {
-                    Log.e("ACTUALIZAR_ROL", "❌ No se pudo actualizar el rol para: $username")
+                    Log.e("ACTUALIZAR_ROL", "No se pudo actualizar el rol para: $username")
                     false
                 }
             } catch (e: Exception) {
-                Log.e("ACTUALIZAR_ROL", "💥 Error actualizando rol: ${e.message}", e)
+                Log.e("ACTUALIZAR_ROL", "Error actualizando rol: ${e.message}", e)
                 false
             }
         }
@@ -290,25 +290,25 @@ data class Usuario(
         fun eliminarUsuarioConLogs(context: Context, username: String): Boolean {
             val dbHelper = DatabaseHelper(context)
             return try {
-                Log.d("ELIMINAR_USUARIO", "🗑️ Intentando eliminar usuario: $username")
+                Log.d("ELIMINAR_USUARIO", "Intentando eliminar usuario: $username")
 
                 // Verificar que el usuario existe antes de eliminar
                 if (!usuarioExiste(context, username)) {
-                    Log.e("ELIMINAR_USUARIO", "❌ Usuario no existe: $username")
+                    Log.e("ELIMINAR_USUARIO", "Usuario no existe: $username")
                     return false
                 }
 
                 val resultado = dbHelper.eliminarUsuario(username)
 
                 if (resultado > 0) {
-                    Log.i("ELIMINAR_USUARIO", "✅ Usuario eliminado exitosamente: $username")
+                    Log.i("ELIMINAR_USUARIO", "Usuario eliminado exitosamente: $username")
                     true
                 } else {
-                    Log.e("ELIMINAR_USUARIO", "❌ No se pudo eliminar usuario: $username")
+                    Log.e("ELIMINAR_USUARIO", "No se pudo eliminar usuario: $username")
                     false
                 }
             } catch (e: Exception) {
-                Log.e("ELIMINAR_USUARIO", "💥 Error eliminando usuario: ${e.message}", e)
+                Log.e("ELIMINAR_USUARIO", "Error eliminando usuario: ${e.message}", e)
                 false
             }
         }
@@ -342,9 +342,9 @@ data class Usuario(
                         }
                     }
                 }
-                Log.d("OBTENER_USUARIOS_ROL", "✅ Usuarios con rol '$rol': ${usuarios.size}")
+                Log.d("OBTENER_USUARIOS_ROL", "Usuarios con rol '$rol': ${usuarios.size}")
             } catch (e: Exception) {
-                Log.e("OBTENER_USUARIOS_ROL", "❌ Error obteniendo usuarios por rol: ${e.message}")
+                Log.e("OBTENER_USUARIOS_ROL", "Error obteniendo usuarios por rol: ${e.message}")
             }
             return usuarios
         }
@@ -360,10 +360,10 @@ data class Usuario(
             val dbHelper = DatabaseHelper(context)
             return try {
                 val cantidad = dbHelper.contarUsuariosPorRol(rol)
-                Log.d("CONTAR_USUARIOS", "👥 Usuarios con rol '$rol': $cantidad")
+                Log.d("CONTAR_USUARIOS", "Usuarios con rol '$rol': $cantidad")
                 cantidad
             } catch (e: Exception) {
-                Log.e("CONTAR_USUARIOS", "❌ Error contando usuarios por rol: ${e.message}")
+                Log.e("CONTAR_USUARIOS", "Error contando usuarios por rol: ${e.message}")
                 0
             }
         }

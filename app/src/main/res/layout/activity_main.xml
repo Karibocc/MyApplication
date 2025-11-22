@@ -1,198 +1,106 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/welcome_gradient_bg"
-    android:fillViewport="true">
+    android:background="#FFFFFF"
+    android:orientation="vertical">
 
+    <!-- Header -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="32dp"
+        android:padding="24dp"
+        android:background="#667eea"
         android:gravity="center">
 
-        <!-- Header con icono decorativo -->
-        <LinearLayout
+        <TextView
+            android:id="@+id/tvWelcome"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
+            android:text="¡Bienvenido!"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:textColor="@android:color/white"
             android:gravity="center"
-            android:layout_marginBottom="40dp">
+            android:layout_marginBottom="8dp" />
 
-            <!-- Icono de bienvenida -->
-            <ImageView
-                android:layout_width="120dp"
-                android:layout_height="120dp"
-                android:src="@android:drawable/ic_secure"
-                android:background="@drawable/circle_welcome_accent"
-                android:padding="24dp"
-                app:tint="@android:color/white" />
-
-            <TextView
-                android:id="@+id/tvWelcome"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="¡Bienvenido!"
-                android:textSize="32sp"
-                android:textStyle="bold"
-                android:textColor="@android:color/white"
-                android:gravity="center"
-                android:layout_marginTop="24dp"
-                android:letterSpacing="0.03" />
-
-            <TextView
-                android:id="@+id/tvUserInfo"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Usuario: \nRol:"
-                android:textSize="16sp"
-                android:textColor="#E3F2FD"
-                android:gravity="center"
-                android:layout_marginTop="12dp"
-                android:lineSpacingExtra="6dp" />
-
-        </LinearLayout>
-
-        <!-- Tarjeta de funcionalidades -->
-        <com.google.android.material.card.MaterialCardView
+        <TextView
+            android:id="@+id/tvUserInfo"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="24dp"
-            app:cardCornerRadius="28dp"
-            app:cardElevation="12dp"
-            app:cardBackgroundColor="@android:color/white">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="20dp">
-
-                <!-- Ver Productos -->
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnVerProductos"
-                    android:layout_width="match_parent"
-                    android:layout_height="60dp"
-                    android:text="📦 Ver Productos"
-                    android:textSize="17sp"
-                    android:textColor="@android:color/white"
-                    android:backgroundTint="#3B82F6"
-                    app:cornerRadius="16dp"
-                    app:icon="@android:drawable/ic_menu_agenda"
-                    app:iconGravity="textStart"
-                    app:iconPadding="12dp"
-                    android:paddingVertical="8dp"
-                    android:layout_marginBottom="12dp"
-                    style="@style/Widget.Material3.Button.ElevatedButton" />
-
-                <!-- Ver Carrito -->
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnVerCarrito"
-                    android:layout_width="match_parent"
-                    android:layout_height="60dp"
-                    android:text="🛒 Ver Carrito"
-                    android:textSize="17sp"
-                    android:textColor="@android:color/white"
-                    android:backgroundTint="#10B981"
-                    app:cornerRadius="16dp"
-                    app:icon="@android:drawable/ic_menu_add"
-                    app:iconGravity="textStart"
-                    app:iconPadding="12dp"
-                    android:paddingVertical="8dp"
-                    android:layout_marginBottom="12dp"
-                    style="@style/Widget.Material3.Button.ElevatedButton" />
-
-                <!-- Mis Pedidos -->
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnMisPedidos"
-                    android:layout_width="match_parent"
-                    android:layout_height="60dp"
-                    android:text="📋 Mis Pedidos"
-                    android:textSize="17sp"
-                    android:textColor="@android:color/white"
-                    android:backgroundTint="#F59E0B"
-                    app:cornerRadius="16dp"
-                    app:icon="@android:drawable/ic_menu_send"
-                    app:iconGravity="textStart"
-                    app:iconPadding="12dp"
-                    android:paddingVertical="8dp"
-                    android:layout_marginBottom="12dp"
-                    style="@style/Widget.Material3.Button.ElevatedButton" />
-
-                <!-- Panel Administrador -->
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnAdmin"
-                    android:layout_width="match_parent"
-                    android:layout_height="60dp"
-                    android:text="👨‍💼 Panel Administrador"
-                    android:textSize="17sp"
-                    android:textColor="@android:color/white"
-                    android:backgroundTint="#8B5CF6"
-                    app:cornerRadius="16dp"
-                    app:icon="@android:drawable/ic_lock_lock"
-                    app:iconGravity="textStart"
-                    app:iconPadding="12dp"
-                    android:paddingVertical="8dp"
-                    android:layout_marginBottom="12dp"
-                    android:visibility="gone"
-                    style="@style/Widget.Material3.Button.ElevatedButton" />
-
-            </LinearLayout>
-
-        </com.google.android.material.card.MaterialCardView>
-
-        <!-- Botón de cerrar sesión -->
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnLogout"
-            android:layout_width="match_parent"
-            android:layout_height="58dp"
-            android:text="Cerrar Sesión"
-            android:textSize="16sp"
-            android:textColor="#DC2626"
-            android:backgroundTint="@android:color/white"
-            app:strokeColor="#DC2626"
-            app:strokeWidth="1.5dp"
-            app:cornerRadius="16dp"
-            app:icon="@android:drawable/ic_lock_power_off"
-            app:iconGravity="textStart"
-            app:iconPadding="8dp"
-            app:iconTint="#DC2626"
-            android:paddingVertical="12dp"
-            style="@style/Widget.Material3.Button.OutlinedButton" />
-
-        <!-- Footer decorativo -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center"
-            android:layout_marginTop="32dp"
-            android:padding="16dp">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="✨ "
-                android:textSize="16sp" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Gracias por usar nuestra app"
-                android:textSize="14sp"
-                android:textColor="#E5E7EB"
-                android:textStyle="italic" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text=" ✨"
-                android:textSize="16sp" />
-
-        </LinearLayout>
+            android:text="Cargando información..."
+            android:textSize="14sp"
+            android:textColor="#E3F2FD"
+            android:gravity="center" />
 
     </LinearLayout>
 
-</ScrollView>
+    <!-- Contenedor para Fragments - AGREGAR ESTA PARTE -->
+    <FrameLayout
+        android:id="@+id/fragment_container"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+
+    <!-- Botones de navegación -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="20dp"
+        android:background="#F5F5F5">
+
+        <Button
+            android:id="@+id/btnVerProductos"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:text="Ver Productos"
+            android:textSize="16sp"
+            android:layout_marginBottom="12dp"
+            android:backgroundTint="#3B82F6"
+            android:textColor="@android:color/white" />
+
+        <Button
+            android:id="@+id/btnVerCarrito"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:text="Ver Carrito"
+            android:textSize="16sp"
+            android:layout_marginBottom="12dp"
+            android:backgroundTint="#10B981"
+            android:textColor="@android:color/white" />
+
+        <Button
+            android:id="@+id/btnMisPedidos"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:text="Mis Pedidos"
+            android:textSize="16sp"
+            android:layout_marginBottom="12dp"
+            android:backgroundTint="#F59E0B"
+            android:textColor="@android:color/white" />
+
+        <Button
+            android:id="@+id/btnAdmin"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:text="Panel Administrador"
+            android:textSize="16sp"
+            android:layout_marginBottom="12dp"
+            android:backgroundTint="#8B5CF6"
+            android:textColor="@android:color/white"
+            android:visibility="gone" />
+
+        <Button
+            android:id="@+id/btnLogout"
+            android:layout_width="match_parent"
+            android:layout_height="55dp"
+            android:text="Cerrar Sesión"
+            android:textSize="16sp"
+            android:textColor="#DC2626"
+            android:background="@android:color/white" />
+
+    </LinearLayout>
+
+</LinearLayout>

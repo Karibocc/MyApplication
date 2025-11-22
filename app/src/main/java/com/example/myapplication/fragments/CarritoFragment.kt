@@ -25,7 +25,6 @@ class CarritoFragment : Fragment() {
     private lateinit var tvTotal: TextView
     private lateinit var tvEmpty: TextView
 
-    // Lista global para mantener los productos del carrito
     private var productosEnCarrito: MutableList<Producto> = mutableListOf()
 
     override fun onCreateView(
@@ -47,9 +46,6 @@ class CarritoFragment : Fragment() {
         return view
     }
 
-    /**
-     * Carga los productos del carrito desde la base de datos y configura el adapter.
-     */
     private fun cargarCarrito() {
         val cursor: Cursor? = try {
             db.obtenerCarrito()
@@ -84,9 +80,6 @@ class CarritoFragment : Fragment() {
         }
     }
 
-    /**
-     * Elimina un producto del carrito y actualiza la UI.
-     */
     private fun eliminarDelCarrito(producto: Producto) {
         val filasAfectadas = db.eliminarDelCarrito(producto.id)
         if (filasAfectadas > 0) {
@@ -97,15 +90,12 @@ class CarritoFragment : Fragment() {
         }
     }
 
-    /**
-     * Actualiza la cantidad en la BD y en la lista local.
-     */
     private fun actualizarCantidad(producto: Producto, nuevaCantidad: Int) {
         val stockDisponible = db.obtenerStockProducto(producto.id)
 
         if (nuevaCantidad <= stockDisponible && nuevaCantidad > 0) {
-            val filas = db.actualizarCantidadEnCarrito(producto.id, nuevaCantidad)
-            if (filas > 0) {
+            val filasAfectadas = db.actualizarCantidadEnCarrito(producto.id, nuevaCantidad)
+            if (filasAfectadas > 0) {
                 val index = productosEnCarrito.indexOfFirst { it.id == producto.id }
                 if (index >= 0) {
                     productosEnCarrito[index].cantidad = nuevaCantidad
@@ -121,9 +111,6 @@ class CarritoFragment : Fragment() {
         }
     }
 
-    /**
-     * Calcula y muestra el total del carrito.
-     */
     private fun actualizarTotal() {
         val total = try {
             productosEnCarrito.sumOf { it.precio * it.cantidad }
@@ -133,17 +120,11 @@ class CarritoFragment : Fragment() {
         tvTotal.text = formatPrice(total)
     }
 
-    /**
-     * Formatea un número a formato de moneda (ej. $1,234.56).
-     */
     private fun formatPrice(price: Double): String {
         val format = NumberFormat.getCurrencyInstance(Locale("es", "MX"))
         return format.format(price)
     }
 
-    /**
-     * Convierte un Cursor (resultado de obtenerCarrito) en una lista de Producto.
-     */
     private fun cursorToProductoList(cursor: Cursor): List<Producto> {
         val productos = mutableListOf<Producto>()
         if (cursor.moveToFirst()) {
@@ -178,11 +159,3 @@ class CarritoFragment : Fragment() {
         cargarCarrito()
     }
 }
-
-
-
-
-
-
-
-

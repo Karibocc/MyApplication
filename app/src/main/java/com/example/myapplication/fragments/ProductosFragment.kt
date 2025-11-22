@@ -1,19 +1,19 @@
 package com.example.myapplication.fragments
 
-import android.content.Context
 import android.database.Cursor
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
-import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.myapplication.R
 import com.example.myapplication.adapters.ProductoAdapter
 import com.example.myapplication.database.DatabaseHelper
+import com.example.myapplication.managers.SessionManager
 import com.example.myapplication.models.Producto
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -24,9 +24,15 @@ class ProductosFragment : Fragment() {
 
     private lateinit var recyclerView: RecyclerView
     private lateinit var adapter: ProductoAdapter
-    private lateinit var listaProductos: List<Producto>
+    private var listaProductos: MutableList<Producto> = mutableListOf()
     private lateinit var db: DatabaseHelper
     private val coroutineScope = CoroutineScope(Dispatchers.Main)
+
+    private var esAdministrador: Boolean = false
+
+    companion object {
+        private const val TAG = "ProductosFragment"
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -39,102 +45,135 @@ class ProductosFragment : Fragment() {
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
 
         db = DatabaseHelper(requireContext())
+
+        verificarRolUsuario()
         cargarProductos()
 
         return vista
     }
 
+    private fun verificarRolUsuario() {
+        try {
+            val userRole = SessionManager.getUserRole(requireContext())
+            esAdministrador = userRole?.equals("admin", ignoreCase = true) ?: false
+            Log.d(TAG, "Rol del usuario: $userRole, Es admin: $esAdministrador")
+        } catch (e: Exception) {
+            esAdministrador = false
+            Log.e(TAG, "Error verificando rol", e)
+        }
+    }
+
     private fun cargarProductos() {
         coroutineScope.launch {
             try {
+                Log.d(TAG, "Iniciando carga de productos...")
+
                 val productos = withContext(Dispatchers.IO) {
                     val cursor = db.obtenerTodosLosProductos()
-                    cursor.toProductoList()
+                    val lista = cursor.toProductoList()
+                    cursor.close()
+                    lista
                 }
 
-                listaProductos = productos
+                Log.d(TAG, "Productos cargados: ${productos.size}")
 
-                adapter = ProductoAdapter(
-                    context = requireContext(),
-                    productos = listaProductos,
-                    onItemClick = { producto -> agregarAlCarrito(requireContext(), producto) },
-                    onEditClick = { producto -> mostrarDialogoEditarProducto(producto) },
-                    onDeleteClick = { producto -> mostrarDialogoConfirmarEliminacion(producto) }
-                )
+                listaProductos.clear()
+                listaProductos.addAll(productos)
 
-                recyclerView.adapter = adapter
+                configurarAdapter()
+
+                if (productos.isEmpty()) {
+                    Toast.makeText(requireContext(), "No hay productos disponibles", Toast.LENGTH_SHORT).show()
+                }
 
             } catch (e: Exception) {
-                Toast.makeText(requireContext(), "Error cargando productos: ${e.message}", Toast.LENGTH_SHORT).show()
+                Log.e(TAG, "ERROR cargando productos: ${e.message}", e)
+                Toast.makeText(requireContext(), "Error cargando productos: ${e.message}", Toast.LENGTH_LONG).show()
             }
         }
     }
 
-    private fun agregarAlCarrito(context: Context, producto: Producto) {
+    private fun configurarAdapter() {
+        adapter = ProductoAdapter(
+            context = requireContext(),
+            productos = listaProductos,
+            onItemClick = { producto ->
+                if (esAdministrador) {
+                    mostrarDetallesProducto(producto)
+                } else {
+                    agregarAlCarrito(producto)
+                }
+            },
+            onEditClick = { producto ->
+                if (esAdministrador) {
+                    mostrarDialogoEditarProducto(producto)
+                }
+            },
+            onDeleteClick = { producto ->
+                if (esAdministrador) {
+                    mostrarDialogoConfirmarEliminacion(producto)
+                }
+            },
+            isAdmin = esAdministrador
+        )
+
+        recyclerView.adapter = adapter
+        Log.d(TAG, "Adapter configurado con ${listaProductos.size} productos")
+    }
+
+    private fun agregarAlCarrito(producto: Producto) {
         coroutineScope.launch {
             try {
-                val resultado = withContext(Dispatchers.IO) {
-                    db.agregarAlCarrito(producto.id, 1)
-                }
+                Log.d(TAG, "Intentando agregar al carrito: ${producto.nombre}")
 
-                if (resultado > 0) {
-                    Toast.makeText(context, "Producto agregado al carrito", Toast.LENGTH_SHORT).show()
+                if (producto.stock > 0) {
+                    val resultado = withContext(Dispatchers.IO) {
+                        db.agregarAlCarrito(producto.id, 1)
+                    }
+
+                    if (resultado > 0) {
+                        Toast.makeText(requireContext(), "${producto.nombre} agregado al carrito", Toast.LENGTH_SHORT).show()
+                        Log.d(TAG, "Producto agregado al carrito exitosamente")
+                    } else {
+                        Toast.makeText(requireContext(), "Error al agregar al carrito", Toast.LENGTH_SHORT).show()
+                        Log.e(TAG, "Error al agregar producto al carrito")
+                    }
                 } else {
-                    Toast.makeText(context, "No hay stock disponible", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(requireContext(), "Producto sin stock disponible", Toast.LENGTH_SHORT).show()
                 }
             } catch (e: Exception) {
-                Toast.makeText(context, "Error agregando al carrito: ${e.message}", Toast.LENGTH_SHORT).show()
+                Log.e(TAG, "ERROR agregando al carrito: ${e.message}", e)
+                Toast.makeText(requireContext(), "Error: ${e.message}", Toast.LENGTH_SHORT).show()
             }
         }
     }
 
-    private fun mostrarDialogoEditarProducto(producto: Producto) {
-        val builder = AlertDialog.Builder(requireContext())
-        builder.setTitle("Editar Producto")
-            .setMessage("¿Desea editar este producto?")
-            .setPositiveButton("Guardar") { dialog, _ ->
-                actualizarProductoEnDB(producto)
+    private fun mostrarDetallesProducto(producto: Producto) {
+        androidx.appcompat.app.AlertDialog.Builder(requireContext())
+            .setTitle("Detalles del Producto")
+            .setMessage(
+                "Nombre: ${producto.nombre}\n" +
+                        "Descripción: ${producto.descripcion}\n" +
+                        "Precio: $${"%.2f".format(producto.precio)}\n" +
+                        "Stock: ${producto.stock}\n" +
+                        "Categoría: ${producto.categoria}"
+            )
+            .setPositiveButton("Aceptar") { dialog, _ ->
                 dialog.dismiss()
             }
-            .setNegativeButton("Cancelar") { dialog, _ ->
-                dialog.dismiss()
-            }
-            .create()
             .show()
     }
 
-    private fun actualizarProductoEnDB(producto: Producto) {
-        coroutineScope.launch {
-            try {
-                val filasAfectadas = withContext(Dispatchers.IO) {
-                    db.actualizarProducto(
-                        producto.id,
-                        producto.nombre,
-                        producto.descripcion,
-                        producto.precio,
-                        producto.imagen_path,
-                        producto.stock
-                    )
-                }
-
-                if (filasAfectadas > 0) {
-                    Toast.makeText(requireContext(), "Producto actualizado", Toast.LENGTH_SHORT).show()
-                    cargarProductos()
-                } else {
-                    Toast.makeText(requireContext(), "Error al actualizar", Toast.LENGTH_SHORT).show()
-                }
-            } catch (e: Exception) {
-                Toast.makeText(requireContext(), "Error actualizando producto: ${e.message}", Toast.LENGTH_SHORT).show()
-            }
-        }
+    private fun mostrarDialogoEditarProducto(producto: Producto) {
+        Toast.makeText(requireContext(), "Funcionalidad de edición en desarrollo", Toast.LENGTH_SHORT).show()
     }
 
     private fun mostrarDialogoConfirmarEliminacion(producto: Producto) {
-        AlertDialog.Builder(requireContext()).apply {
+        androidx.appcompat.app.AlertDialog.Builder(requireContext()).apply {
             setTitle("Confirmar eliminación")
-            setMessage("¿Está seguro que desea eliminar ${producto.nombre}?")
+            setMessage("¿Está seguro que desea eliminar \"${producto.nombre}\"?")
             setPositiveButton("Eliminar") { _, _ ->
-                eliminarProductoEnDB(producto)
+                eliminarProducto(producto)
             }
             setNegativeButton("Cancelar", null)
             create()
@@ -142,7 +181,7 @@ class ProductosFragment : Fragment() {
         }
     }
 
-    private fun eliminarProductoEnDB(producto: Producto) {
+    private fun eliminarProducto(producto: Producto) {
         coroutineScope.launch {
             try {
                 val filasAfectadas = withContext(Dispatchers.IO) {
@@ -151,87 +190,69 @@ class ProductosFragment : Fragment() {
 
                 if (filasAfectadas > 0) {
                     Toast.makeText(requireContext(), "Producto eliminado", Toast.LENGTH_SHORT).show()
-                    // Actualizar lista sin recargar toda la base de datos
-                    listaProductos = listaProductos.filter { it.id != producto.id }
-                    adapter.updateProductos(listaProductos)
+                    listaProductos.removeAll { it.id == producto.id }
+                    adapter.updateProductos(listaProductos.toList())
+                    Log.d(TAG, "Producto eliminado: ${producto.nombre}")
                 } else {
                     Toast.makeText(requireContext(), "Error al eliminar", Toast.LENGTH_SHORT).show()
                 }
             } catch (e: Exception) {
-                Toast.makeText(requireContext(), "Error eliminando producto: ${e.message}", Toast.LENGTH_SHORT).show()
+                Log.e(TAG, "ERROR eliminando producto: ${e.message}", e)
+                Toast.makeText(requireContext(), "Error eliminando producto", Toast.LENGTH_SHORT).show()
             }
         }
-    }
-
-    /**
-     * 🔹 NUEVO: Método para filtrar productos
-     */
-    fun filtrarProductos(query: String) {
-        coroutineScope.launch {
-            try {
-                val productosFiltrados = withContext(Dispatchers.IO) {
-                    if (query.isBlank()) {
-                        val cursor = db.obtenerTodosLosProductos()
-                        cursor.toProductoList()
-                    } else {
-                        // Filtrar localmente (podrías implementar filtro en DB si lo prefieres)
-                        listaProductos.filter {
-                            it.nombre.contains(query, ignoreCase = true) ||
-                                    it.descripcion.contains(query, ignoreCase = true)
-                        }
-                    }
-                }
-                adapter.updateProductos(productosFiltrados)
-            } catch (e: Exception) {
-                Toast.makeText(requireContext(), "Error filtrando productos", Toast.LENGTH_SHORT).show()
-            }
-        }
-    }
-
-    /**
-     * 🔹 NUEVO: Método para recargar productos
-     */
-    fun recargarProductos() {
-        cargarProductos()
-    }
-
-    /**
-     * 🔹 NUEVO: Método para obtener estadísticas de productos
-     */
-    fun obtenerEstadisticasProductos(): Triple<Int, Int, Double> {
-        val totalProductos = listaProductos.size
-        val productosConStock = listaProductos.count { it.stock > 0 }
-        val valorTotalInventario = listaProductos.sumOf { it.precio * it.stock }
-
-        return Triple(totalProductos, productosConStock, valorTotalInventario)
     }
 
     private fun Cursor.toProductoList(): List<Producto> {
-        return mutableListOf<Producto>().apply {
+        val productos = mutableListOf<Producto>()
+        try {
             if (moveToFirst()) {
                 do {
-                    add(Producto(
-                        id = getInt(getColumnIndexOrThrow(DatabaseHelper.COLUMN_ID)),
-                        nombre = getString(getColumnIndexOrThrow(DatabaseHelper.COLUMN_NOMBRE)),
-                        descripcion = getString(getColumnIndexOrThrow(DatabaseHelper.COLUMN_DESCRIPCION)),
-                        precio = getDouble(getColumnIndexOrThrow(DatabaseHelper.COLUMN_PRECIO)),
-                        imagen_path = getString(getColumnIndexOrThrow(DatabaseHelper.COLUMN_IMAGEN_PATH)),
-                        stock = getInt(getColumnIndexOrThrow(DatabaseHelper.COLUMN_STOCK))
-                    ))
+                    try {
+                        val id = getInt(getColumnIndexOrThrow(DatabaseHelper.COLUMN_ID))
+                        val nombre = getString(getColumnIndexOrThrow(DatabaseHelper.COLUMN_NOMBRE)) ?: "Sin nombre"
+                        val descripcion = getString(getColumnIndexOrThrow(DatabaseHelper.COLUMN_DESCRIPCION)) ?: "Sin descripción"
+                        val precio = getDouble(getColumnIndexOrThrow(DatabaseHelper.COLUMN_PRECIO))
+                        val imagenPath = getString(getColumnIndexOrThrow(DatabaseHelper.COLUMN_IMAGEN_PATH)) ?: ""
+                        val stock = getInt(getColumnIndexOrThrow(DatabaseHelper.COLUMN_STOCK))
+                        val cantidad = getInt(getColumnIndexOrThrow(DatabaseHelper.COLUMN_CANTIDAD))
+                        val categoria = getString(getColumnIndexOrThrow(DatabaseHelper.COLUMN_CATEGORIA)) ?: "General"
+
+                        productos.add(Producto(
+                            id = id,
+                            nombre = nombre,
+                            descripcion = descripcion,
+                            precio = precio,
+                            imagen_path = imagenPath,
+                            stock = stock,
+                            cantidad = cantidad,
+                            categoria = categoria
+                        ))
+
+                        Log.d(TAG, "Producto cargado: $nombre (ID: $id)")
+                    } catch (e: Exception) {
+                        Log.e(TAG, "Error procesando fila del cursor", e)
+                    }
                 } while (moveToNext())
             }
-            close()
+        } catch (e: Exception) {
+            Log.e(TAG, "Error en toProductoList", e)
         }
+        return productos
     }
 
     override fun onResume() {
         super.onResume()
-        // Recargar productos cuando el fragment se vuelve visible
+        Log.d(TAG, "onResume - Recargando productos")
         cargarProductos()
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        db.close()
+        try {
+            db.close()
+        } catch (e: Exception) {
+            Log.e(TAG, "Error cerrando DB", e)
+        }
     }
 }
