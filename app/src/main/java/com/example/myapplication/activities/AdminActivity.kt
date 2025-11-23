@@ -29,6 +29,7 @@ class AdminActivity : AppCompatActivity() {
     private lateinit var btnGestionarUsuarios: LinearLayout
     private lateinit var btnVerReportes: LinearLayout
     private lateinit var btnCerrarSesion: Button
+    private lateinit var btnGeolocalizacion: LinearLayout
 
     private val auth = Firebase.auth
     private val coroutineScope = CoroutineScope(Dispatchers.Main)
@@ -72,6 +73,7 @@ class AdminActivity : AppCompatActivity() {
             btnGestionarUsuarios = findViewById(R.id.btnGestionarUsuarios)
             btnVerReportes = findViewById(R.id.btnVerReportes)
             btnCerrarSesion = findViewById(R.id.btnCerrarSesion)
+            btnGeolocalizacion = findViewById(R.id.btnGeolocalizacion)
 
             Log.d(TAG, "Vistas inicializadas correctamente")
         } catch (e: Exception) {
@@ -126,6 +128,11 @@ class AdminActivity : AppCompatActivity() {
             abrirReportesConDatosReales()
         }
 
+        btnGeolocalizacion.setOnClickListener {
+            Log.d(TAG, "Clic en Geolocalizacion")
+            abrirGeolocalizacion()
+        }
+
         btnCerrarSesion.setOnClickListener {
             Log.d(TAG, "Clic en Cerrar Sesion")
             cerrarSesion()
@@ -134,6 +141,33 @@ class AdminActivity : AppCompatActivity() {
         Log.d(TAG, "Todos los listeners configurados")
     }
 
+    private fun abrirGeolocalizacion() {
+        try {
+            Log.d(TAG, "Abriendo pantalla de geolocalizacion...")
+
+            // Crear intent para abrir MapsActivity
+            val intent = Intent(this, com.example.myapplication.maps.MapsActivity::class.java)
+
+            // Opcional: Pasar datos adicionales si es necesario
+            intent.putExtra("origen", "admin_panel")
+            intent.putExtra("usuario_admin", auth.currentUser?.email ?: "admin")
+
+            startActivity(intent)
+            Log.d(TAG, "MapsActivity iniciada exitosamente")
+
+        } catch (e: android.content.ActivityNotFoundException) {
+            Log.e(TAG, "MapsActivity no encontrada: ${e.message}", e)
+            showToast("Error: Actividad de mapa no disponible")
+        } catch (e: SecurityException) {
+            Log.e(TAG, "Error de seguridad: ${e.message}", e)
+            showToast("Error de permisos")
+        } catch (e: Exception) {
+            Log.e(TAG, "ERROR abriendo MapsActivity: ${e.message}", e)
+            showToast("Error al abrir geolocalizacion")
+        }
+    }
+
+    // El resto de tus métodos existentes se mantienen igual...
     private fun abrirReportesConDatosReales() {
         try {
             Log.d(TAG, "Abriendo pantalla de reportes con datos reales...")

@@ -1,6 +1,129 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-             android:layout_width="match_parent"
-             android:layout_height="match_parent">
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#f5f5f5">
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <!-- Header -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="#2c3e50"
+            android:padding="16dp">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Nuestras Tiendas"
+                android:textColor="#ffffff"
+                android:textSize="24sp"
+                android:textStyle="bold"
+                android:gravity="center" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Encuentra la tienda más cercana a tu ubicación"
+                android:textColor="#ecf0f1"
+                android:textSize="14sp"
+                android:gravity="center"
+                android:layout_marginTop="8dp" />
+        </LinearLayout>
+
+        <!-- Status de ubicación -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:background="#3498db"
+            android:padding="12dp">
+
+            <TextView
+                android:id="@+id/tvLocationStatus"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Selecciona una opción para ver tiendas"
+                android:textColor="#ffffff"
+                android:textSize="14sp" />
+
+            <Button
+                android:id="@+id/btnCurrentLocation"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Mi Ubicación"
+                android:background="@android:color/transparent"
+                android:textColor="#ffffff"
+                android:textSize="12sp" />
+        </LinearLayout>
+
+        <!-- Filtros y estadísticas -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:background="#ffffff"
+            android:padding="16dp"
+            android:elevation="2dp">
+
+            <TextView
+                android:id="@+id/tvTotalTiendas"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Total: 0 tiendas"
+                android:textColor="#2c3e50"
+                android:textStyle="bold" />
+
+            <Button
+                android:id="@+id/btnVerMapaGeneral"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Ver en Mapa"
+                android:backgroundTint="#e74c3c"
+                android:textColor="#ffffff"
+                android:textSize="12sp" />
+        </LinearLayout>
+
+        <!-- Indicador de filtro actual -->
+        <TextView
+            android:id="@+id/tvFiltroActual"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Mostrando todas las tiendas"
+            android:background="#ecf0f1"
+            android:padding="8dp"
+            android:textColor="#424242"
+            android:textSize="12sp"
+            android:gravity="center" />
+
+        <!-- Lista de tiendas -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvTiendas"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="16dp"
+            android:background="#ffffff"
+            android:padding="8dp"
+            android:elevation="2dp" />
+
+        <!-- Mensaje si no hay tiendas -->
+        <TextView
+            android:id="@+id/tvEmptyState"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="No se encontraron tiendas"
+            android:gravity="center"
+            android:padding="32dp"
+            android:textColor="#7f8c8d"
+            android:visibility="gone" />
+
+    </LinearLayout>
+</ScrollView>

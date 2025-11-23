@@ -1,4 +1,7 @@
 package com.example.myapplication.models
 
-class Ubicacion {
-}
+data class Ubicacion(
+    val latitud: Double,
+    val longitud: Double,
+    val direccion: String = ""
+)

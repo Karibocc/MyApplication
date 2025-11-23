@@ -12,16 +12,16 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="24dp">
+        android:padding="16dp">
 
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="128dp"
-            android:layout_marginBottom="32dp"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="24dp"
             android:gravity="center"
             android:orientation="vertical"
-            android:paddingVertical="20dp">
+            android:paddingVertical="16dp">
 
             <TextView
                 android:layout_width="match_parent"
@@ -30,7 +30,7 @@
                 android:letterSpacing="0.02"
                 android:text="Panel de Administración"
                 android:textColor="@android:color/white"
-                android:textSize="28sp"
+                android:textSize="24sp"
                 android:textStyle="bold" />
 
             <TextView
@@ -39,10 +39,10 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
                 android:gravity="center"
-                android:lineSpacingExtra="4dp"
+                android:maxLines="2"
                 android:text="Cargando información..."
                 android:textColor="#E3F2FD"
-                android:textSize="14sp" />
+                android:textSize="12sp" />
 
         </LinearLayout>
 
@@ -50,105 +50,132 @@
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="24dp"
-            app:cardCornerRadius="24dp"
-            app:cardElevation="8dp"
+            android:layout_marginBottom="16dp"
+            app:cardCornerRadius="20dp"
+            app:cardElevation="6dp"
             app:cardBackgroundColor="@android:color/white">
 
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="392dp"
+                android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="8dp">
+                android:padding="4dp">
 
 
                 <LinearLayout
                     android:id="@+id/btnGestionarProductos"
                     android:layout_width="match_parent"
-                    android:layout_height="96dp"
-                    android:layout_margin="8dp"
+                    android:layout_height="80dp"
+                    android:layout_margin="4dp"
                     android:background="?attr/selectableItemBackground"
                     android:backgroundTint="#F3F4F6"
                     android:clickable="true"
                     android:focusable="true"
                     android:orientation="vertical"
-                    android:padding="20dp">
+                    android:padding="16dp">
 
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="Gestión de Productos"
                         android:textColor="#1F2937"
-                        android:textSize="18sp"
+                        android:textSize="16sp"
                         android:textStyle="bold" />
 
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="4dp"
+                        android:layout_marginTop="2dp"
                         android:text="Agregar, editar y eliminar productos"
                         android:textColor="#6B7280"
-                        android:textSize="13sp" />
+                        android:textSize="11sp" />
                 </LinearLayout>
-
 
                 <LinearLayout
                     android:id="@+id/btnGestionarUsuarios"
                     android:layout_width="match_parent"
-                    android:layout_height="99dp"
-                    android:layout_margin="8dp"
+                    android:layout_height="80dp"
+                    android:layout_margin="4dp"
                     android:background="?attr/selectableItemBackground"
                     android:backgroundTint="#F3F4F6"
                     android:clickable="true"
                     android:focusable="true"
                     android:orientation="vertical"
-                    android:padding="20dp">
+                    android:padding="16dp">
 
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="Gestión de Usuarios"
                         android:textColor="#1F2937"
-                        android:textSize="18sp"
+                        android:textSize="16sp"
                         android:textStyle="bold" />
 
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="4dp"
+                        android:layout_marginTop="2dp"
                         android:text="Administrar usuarios y permisos"
                         android:textColor="#6B7280"
-                        android:textSize="13sp" />
+                        android:textSize="11sp" />
                 </LinearLayout>
-
 
                 <LinearLayout
                     android:id="@+id/btnVerReportes"
                     android:layout_width="match_parent"
-                    android:layout_height="100dp"
-                    android:layout_margin="8dp"
+                    android:layout_height="80dp"
+                    android:layout_margin="4dp"
                     android:background="?attr/selectableItemBackground"
                     android:backgroundTint="#F3F4F6"
                     android:clickable="true"
                     android:focusable="true"
                     android:orientation="vertical"
-                    android:padding="20dp">
+                    android:padding="16dp">
 
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="Ver Reportes"
                         android:textColor="#1F2937"
-                        android:textSize="18sp"
+                        android:textSize="16sp"
                         android:textStyle="bold" />
 
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="4dp"
+                        android:layout_marginTop="2dp"
                         android:text="Estadísticas y análisis del sistema"
                         android:textColor="#6B7280"
-                        android:textSize="13sp" />
+                        android:textSize="11sp" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/btnGeolocalizacion"
+                    android:layout_width="match_parent"
+                    android:layout_height="80dp"
+                    android:layout_margin="4dp"
+                    android:background="?attr/selectableItemBackground"
+                    android:backgroundTint="#F3F4F6"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Geolocalización"
+                        android:textColor="#1F2937"
+                        android:textSize="16sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:text="Ubicación y tiendas en mapa"
+                        android:textColor="#6B7280"
+                        android:textSize="11sp" />
                 </LinearLayout>
 
             </LinearLayout>
@@ -159,23 +186,23 @@
         <Button
             android:id="@+id/btnCerrarSesion"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="48dp"
             android:layout_marginTop="8dp"
             android:background="@android:color/white"
-            android:paddingVertical="14dp"
             android:text="Cerrar Sesión"
             android:textColor="#DC2626"
-            android:textSize="16sp" />
+            android:textSize="14sp" />
+
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
+            android:layout_marginTop="16dp"
             android:gravity="center"
-            android:padding="12dp"
+            android:padding="8dp"
             android:text="Sistema de Administración v1.0"
             android:textColor="#E5E7EB"
-            android:textSize="12sp" />
+            android:textSize="10sp" />
 
     </LinearLayout>
 

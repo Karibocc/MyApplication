@@ -23,7 +23,7 @@ class CarritoAdapter(
         private val tvQuantity: TextView = itemView.findViewById(R.id.tvQuantity)
         private val btnMinus: ImageView = itemView.findViewById(R.id.btnMinus)
         private val btnPlus: ImageView = itemView.findViewById(R.id.btnPlus)
-        private val btnDelete: ImageView = itemView.findViewById(R.id.btnDelete)  
+        private val btnDelete: ImageView = itemView.findViewById(R.id.btnDelete)
         private val tvSubtotal: TextView = itemView.findViewById(R.id.tvSubtotal)
 
         fun bind(producto: Producto) {
