@@ -13,7 +13,7 @@
         android:orientation="horizontal"
         android:padding="16dp">
 
-        <!-- Imagen del producto -->
+        <!-- Imagen -->
         <ImageView
             android:id="@+id/ivProductImage"
             android:layout_width="80dp"
@@ -21,7 +21,7 @@
             android:scaleType="centerCrop"
             android:src="@drawable/ic_image_placeholder" />
 
-        <!-- Información del producto -->
+        <!-- Información -->
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -60,33 +60,29 @@
 
         </LinearLayout>
 
-        <!-- Botones de administrador - VERSIÓN CON BOTONES MÁS GRANDES -->
+        <!-- Botones admin -->
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:orientation="vertical"
             android:gravity="center">
 
-            <!-- Botón Editar más grande -->
             <Button
                 android:id="@+id/btnEdit"
                 android:layout_width="56dp"
                 android:layout_height="56dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
-                android:drawableTop="@android:drawable/ic_menu_edit"
-                android:text=""
+                android:drawableTop="@drawable/ic_edit"
                 android:contentDescription="Editar producto"
                 android:padding="8dp"
                 style="@style/Widget.AppCompat.Button.Borderless" />
 
-            <!-- Botón Eliminar más grande -->
             <Button
                 android:id="@+id/btnDelete"
                 android:layout_width="56dp"
                 android:layout_height="56dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
-                android:drawableTop="@android:drawable/ic_menu_delete"
-                android:text=""
+                android:drawableTop="@drawable/ic_delete"
                 android:contentDescription="Eliminar producto"
                 android:padding="8dp"
                 style="@style/Widget.AppCompat.Button.Borderless"

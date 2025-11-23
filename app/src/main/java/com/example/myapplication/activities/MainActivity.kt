@@ -10,7 +10,7 @@ import androidx.fragment.app.Fragment
 import com.example.myapplication.R
 import com.example.myapplication.fragments.CarritoFragment
 import com.example.myapplication.fragments.ProductosFragment
-import com.example.myapplication.fragments.homeFragment
+import com.example.myapplication.fragments.HomeFragment
 import com.example.myapplication.managers.SessionManager
 import com.example.myapplication.models.Usuario
 import com.google.firebase.auth.FirebaseAuth
@@ -161,7 +161,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun abrirMisPedidos() {
         try {
-            val fragment = homeFragment()
+            val fragment = HomeFragment()
             loadFragment(fragment, "homeFragment")
         } catch (e: Exception) {
             showToast("Error abriendo pedidos")

@@ -8,6 +8,7 @@ import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import com.example.myapplication.R
 import com.example.myapplication.adapters.UsuarioAdapter
+import com.example.myapplication.database.DatabaseHelper
 import com.example.myapplication.models.Usuario
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 
@@ -52,7 +53,6 @@ class GestionarUsuariosActivity : AppCompatActivity() {
 
         btnAgregarUsuario.setOnClickListener {
             Log.d("GESTION_USUARIOS", "Botón Agregar Usuario clickeado")
-            // Redirigir a RegistroActivity
             val intent = Intent(this, RegistroActivity::class.java)
             startActivity(intent)
         }
@@ -138,20 +138,18 @@ class GestionarUsuariosActivity : AppCompatActivity() {
 
     private fun mostrarDialogEditarUsuario(usuario: Usuario, position: Int) {
         try {
-            val dialogView = layoutInflater.inflate(R.layout.dialog_agregar_usuario, null)
+            val dialogView = layoutInflater.inflate(R.layout.dialog_editar_usuario, null)
 
             val etUsername = dialogView.findViewById<EditText>(R.id.etUsername)
             val etEmail = dialogView.findViewById<EditText>(R.id.etEmail)
-            val etPassword = dialogView.findViewById<EditText>(R.id.etPassword)
             val spRol = dialogView.findViewById<Spinner>(R.id.spRol)
             val btnCancelar = dialogView.findViewById<Button>(R.id.btnCancelar)
             val btnGuardar = dialogView.findViewById<Button>(R.id.btnGuardar)
 
             etUsername.setText(usuario.username)
             etEmail.setText(usuario.email ?: "")
-            etPassword.visibility = View.GONE
 
-            val roles = listOf("Administrador", "Usuario", "Invitado")
+            val roles = arrayOf("Administrador", "Usuario", "Invitado")
             val spinnerAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, roles)
             spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
             spRol.adapter = spinnerAdapter
@@ -163,7 +161,7 @@ class GestionarUsuariosActivity : AppCompatActivity() {
 
             val dialog = MaterialAlertDialogBuilder(this)
                 .setView(dialogView)
-                .setTitle("Editar Usuario")
+                .setTitle("Editar Usuario: ${usuario.username}")
                 .create()
 
             btnCancelar.setOnClickListener {
@@ -176,12 +174,17 @@ class GestionarUsuariosActivity : AppCompatActivity() {
                 val nuevoRol = spRol.selectedItem.toString()
 
                 if (nuevoUsername.isEmpty()) {
-                    Toast.makeText(this, "El nombre de usuario no puede estar vacío", Toast.LENGTH_SHORT).show()
+                    etUsername.error = "El nombre de usuario es obligatorio"
                     return@setOnClickListener
                 }
 
                 if (nuevoEmail.isEmpty()) {
-                    Toast.makeText(this, "El email no puede estar vacío", Toast.LENGTH_SHORT).show()
+                    etEmail.error = "El email es obligatorio"
+                    return@setOnClickListener
+                }
+
+                if (!android.util.Patterns.EMAIL_ADDRESS.matcher(nuevoEmail).matches()) {
+                    etEmail.error = "Email no válido"
                     return@setOnClickListener
                 }
 
@@ -193,7 +196,7 @@ class GestionarUsuariosActivity : AppCompatActivity() {
 
         } catch (e: Exception) {
             Log.e("GESTION_USUARIOS", "Error en diálogo de edición: ${e.message}", e)
-            Toast.makeText(this, "Error al editar usuario", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Error al abrir editor de usuario", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -210,11 +213,9 @@ class GestionarUsuariosActivity : AppCompatActivity() {
                 val usuarioActualizado = usuario.copy(rol = nuevoRol)
                 usuariosAdapter.actualizarUsuario(position, usuarioActualizado)
 
-
                 Log.d("GESTION_USUARIOS", "Usuario actualizado en adapter: ${usuarioActualizado.username} - ${usuarioActualizado.rol}")
             } else {
                 Toast.makeText(this, "Error al cambiar el rol", Toast.LENGTH_SHORT).show()
-
                 actualizarListaUsuarios()
             }
 
@@ -246,22 +247,29 @@ class GestionarUsuariosActivity : AppCompatActivity() {
     private fun guardarCambiosUsuario(usuarioOriginal: Usuario, nuevoUsername: String, nuevoEmail: String, nuevoRol: String, position: Int) {
         try {
             Log.d("GESTION_USUARIOS", "Guardando cambios para usuario: ${usuarioOriginal.username}")
-
-            val rolCambio = nuevoRol != usuarioOriginal.rol
-            val usernameCambio = nuevoUsername != usuarioOriginal.username
+            Log.d("GESTION_USUARIOS", "Nuevos datos - Username: $nuevoUsername, Email: $nuevoEmail, Rol: $nuevoRol")
 
             var cambiosRealizados = false
 
-            if (rolCambio) {
+            if (nuevoRol != usuarioOriginal.rol) {
+                Log.d("GESTION_USUARIOS", "Cambiando rol de ${usuarioOriginal.rol} a $nuevoRol")
                 val exitoRol = Usuario.actualizarRolUsuario(this, usuarioOriginal.username, nuevoRol)
                 if (exitoRol) {
                     cambiosRealizados = true
-                    Log.d("GESTION_USUARIOS", "Rol cambiado exitosamente")
+                    Log.d("GESTION_USUARIOS", "Rol actualizado exitosamente")
+                } else {
+                    Log.e("GESTION_USUARIOS", "Error al actualizar rol en BD")
                 }
             }
 
-            if (usernameCambio) {
-                Toast.makeText(this, "Solo se puede cambiar el rol por ahora", Toast.LENGTH_SHORT).show()
+            if (nuevoEmail != usuarioOriginal.email) {
+                Log.d("GESTION_USUARIOS", "Email cambiado de ${usuarioOriginal.email} a $nuevoEmail")
+                Toast.makeText(this, "Función de cambio de email en desarrollo", Toast.LENGTH_SHORT).show()
+            }
+
+            if (nuevoUsername != usuarioOriginal.username) {
+                Log.d("GESTION_USUARIOS", "Username cambiado de ${usuarioOriginal.username} a $nuevoUsername")
+                Toast.makeText(this, "Función de cambio de username en desarrollo", Toast.LENGTH_SHORT).show()
             }
 
             if (cambiosRealizados) {
@@ -273,7 +281,7 @@ class GestionarUsuariosActivity : AppCompatActivity() {
 
         } catch (e: Exception) {
             Log.e("GESTION_USUARIOS", "Error guardando cambios: ${e.message}", e)
-            Toast.makeText(this, "Error guardando cambios", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Error guardando cambios: ${e.message}", Toast.LENGTH_LONG).show()
         }
     }
 

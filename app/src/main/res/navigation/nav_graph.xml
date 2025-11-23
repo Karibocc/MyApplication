@@ -8,7 +8,7 @@
     <!-- Home Fragment -->
     <fragment
         android:id="@+id/homeFragment"
-        android:name="com.example.myapplication.fragments.homeFragment"
+        android:name="com.example.myapplication.fragments.HomeFragment"
         android:label="Inicio"
         tools:layout="@layout/fragment_home">
 
@@ -42,9 +42,9 @@
     <!-- Products Fragment -->
     <fragment
         android:id="@+id/productsFragment"
-        android:name="com.example.myapplication.fragments.ProductsFragment"
+        android:name="com.example.myapplication.fragments.ProductosFragment"
         android:label="Productos"
-        tools:layout="@layout/fragment_products">
+        tools:layout="@layout/fragment_productos">
 
         <action
             android:id="@+id/action_products_to_home"

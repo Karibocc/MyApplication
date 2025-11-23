@@ -43,8 +43,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private lateinit var locationRequest: LocationRequest
     private lateinit var locationCallback: LocationCallback
-
     private val coroutineScope = CoroutineScope(Dispatchers.Main)
+    private var lastLatLng: LatLng? = null
 
     private val enableGpsLauncher = registerForActivityResult(
         ActivityResultContracts.StartIntentSenderForResult()
@@ -60,7 +60,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_maps)
-
         initializeMap()
         setupLocationClient()
         setupLocationButton()
@@ -173,7 +172,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                     } else showToast("No se puede activar la ubicación automáticamente")
                 }
             } catch (e: Exception) {
-                Log.e("MapsActivity", "Error en promptEnableGPS: ${e.message}")
                 showToast("Error al verificar configuración de ubicación")
             }
         }
@@ -184,7 +182,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         try {
             mMap.isMyLocationEnabled = true
         } catch (e: SecurityException) {
-            Log.e("MapsActivity", "Error al habilitar ubicación: ${e.message}")
         }
     }
 
@@ -199,12 +196,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                         setupLocationUpdates()
                         startLocationUpdates()
                     } else showToast("No se pudo obtener la ubicación actual")
-                }.addOnFailureListener { e ->
-                    Log.e("MapsActivity", "Error al obtener ubicación", e)
-                    showToast("Error al obtener ubicación: ${e.message ?: "Desconocido"}")
                 }
             } catch (e: Exception) {
-                Log.e("MapsActivity", "Error en startLocationFlow: ${e.message}")
                 showToast("Error al iniciar flujo de ubicación")
             }
         }
@@ -220,7 +213,10 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                 super.onLocationResult(result)
                 result.lastLocation?.let { loc ->
                     val latLng = LatLng(loc.latitude, loc.longitude)
-                    mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, LOCATION_ZOOM))
+                    if (lastLatLng == null || lastLatLng != latLng) {
+                        lastLatLng = latLng
+                        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, LOCATION_ZOOM))
+                    }
                 }
             }
         }
@@ -231,10 +227,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         try {
             fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, mainLooper)
         } catch (e: SecurityException) {
-            Log.e("MapsActivity", "Error de permisos en startLocationUpdates: ${e.message}")
             showToast("Error de permisos para actualizaciones de ubicación")
         } catch (e: Exception) {
-            Log.e("MapsActivity", "Error en startLocationUpdates: ${e.message}")
             showToast("Error al iniciar actualizaciones de ubicación")
         }
     }
@@ -245,7 +239,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                 fusedLocationClient.removeLocationUpdates(locationCallback)
             }
         } catch (e: Exception) {
-            Log.e("MapsActivity", "Error al detener actualizaciones: ${e.message}")
         }
     }
 
@@ -263,7 +256,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                 color?.let { icon(BitmapDescriptorFactory.defaultMarker(it)) }
             }.also { mMap.addMarker(it) }
         } catch (e: Exception) {
-            Log.e("MapsActivity", "Error al agregar marcador: ${e.message}")
         }
     }
 
@@ -272,7 +264,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
             zoom?.let { mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, it)) }
                 ?: mMap.animateCamera(CameraUpdateFactory.newLatLng(latLng))
         } catch (e: Exception) {
-            Log.e("MapsActivity", "Error al animar cámara: ${e.message}")
         }
     }
 
@@ -280,7 +271,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         try {
             Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
         } catch (e: Exception) {
-            Log.e("MapsActivity", "Error mostrando toast: ${e.message}")
         }
     }
 
@@ -292,7 +282,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         try {
             mMap.clear()
         } catch (e: Exception) {
-            Log.e("MapsActivity", "Error limpiando marcadores: ${e.message}")
         }
     }
 

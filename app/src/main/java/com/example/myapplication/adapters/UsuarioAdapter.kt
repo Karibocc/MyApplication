@@ -6,6 +6,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
+import androidx.core.content.ContextCompat
 import com.example.myapplication.R
 import com.example.myapplication.models.Usuario
 
@@ -32,7 +33,19 @@ class UsuarioAdapter(
 
         tvUsername.text = "Usuario: ${usuario.username}"
         tvRol.text = "Rol: ${usuario.rol?.replaceFirstChar { it.uppercase() } ?: "Usuario"}"
-        tvEmail.text = "Email: ${usuario.email ?: usuario.username}"
+        tvEmail.text = "Email: ${usuario.email ?: "No especificado"}"
+
+        when (usuario.rol?.lowercase()) {
+            "administrador" -> {
+                tvRol.setTextColor(ContextCompat.getColor(context, android.R.color.holo_red_dark))
+            }
+            "usuario" -> {
+                tvRol.setTextColor(ContextCompat.getColor(context, android.R.color.holo_blue_dark))
+            }
+            else -> {
+                tvRol.setTextColor(ContextCompat.getColor(context, android.R.color.darker_gray))
+            }
+        }
 
         btnEditar.setOnClickListener {
             Log.d("USUARIO_ADAPTER", "Editando: ${usuario.username}, Posición: $position")

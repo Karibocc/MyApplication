@@ -44,6 +44,15 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public static final String COLUMN_CARRITO_ID = "id_carrito";
     public static final String COLUMN_FECHA_AGREGADO = "fecha_agregado";
 
+    // Tabla órdenes/ventas
+    public static final String TABLE_ORDENES = "ordenes";
+    public static final String COLUMN_ORDEN_ID = "id_orden";
+    public static final String COLUMN_FECHA_ORDEN = "fecha_orden";
+    public static final String COLUMN_TOTAL = "total";
+    public static final String COLUMN_ESTADO = "estado";
+    public static final String COLUMN_USUARIO_ORDEN = "usuario";
+    public static final String COLUMN_PRODUCTOS_ORDEN = "productos";
+
     // Creación de tablas
     private static final String TABLE_CREATE_PRODUCTOS =
             "CREATE TABLE " + TABLE_PRODUCTOS + " (" +
@@ -817,6 +826,28 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             if (cursor != null) {
                 cursor.close();
             }
+        }
+    }
+    // ==================================================================
+    // MÉTODOS DE ORDENES / VENTAS
+    // ==================================================================
+
+    public static class Orden {
+        public int id;
+        public String fecha;
+        public double total;
+        public String estado;
+        public String usuario;
+        public String productos; // JSON o string con los productos
+
+        public Orden() {}
+
+        public Orden(String fecha, double total, String estado, String usuario, String productos) {
+            this.fecha = fecha;
+            this.total = total;
+            this.estado = estado;
+            this.usuario = usuario;
+            this.productos = productos;
         }
     }
 

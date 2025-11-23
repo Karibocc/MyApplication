@@ -6,36 +6,40 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:padding="24dp"
-    android:background="@color/white"
+    android:background="@android:color/white"
     tools:context=".activities.RegistroActivity">
 
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Registro de Usuario"
-        android:textSize="20sp"
+        android:textSize="24sp"
         android:textStyle="bold"
-        android:textColor="@color/colorPrimary"
+        android:textColor="#2196F3"
         android:gravity="center"
-        android:layout_marginBottom="24dp" />
+        android:layout_marginBottom="32dp" />
 
     <com.google.android.material.textfield.TextInputLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="16dp"
         app:boxBackgroundMode="outline"
-        app:boxStrokeColor="@color/colorPrimary"
-        app:hintTextColor="@color/colorPrimary">
+        app:boxStrokeColor="#2196F3"
+        app:hintTextColor="#2196F3"
+        app:boxCornerRadiusBottomEnd="8dp"
+        app:boxCornerRadiusBottomStart="8dp"
+        app:boxCornerRadiusTopEnd="8dp"
+        app:boxCornerRadiusTopStart="8dp">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/etUsername"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="60dp"
             android:hint="Nombre de usuario"
             android:inputType="textPersonName"
             android:maxLines="1"
             android:textSize="16sp"
-            android:textColor="@color/black" />
+            android:textColor="#000000" />
 
     </com.google.android.material.textfield.TextInputLayout>
 
@@ -44,39 +48,48 @@
         android:layout_height="wrap_content"
         android:layout_marginBottom="16dp"
         app:boxBackgroundMode="outline"
-        app:boxStrokeColor="@color/colorPrimary"
-        app:hintTextColor="@color/colorPrimary">
+        app:boxStrokeColor="#2196F3"
+        app:hintTextColor="#2196F3"
+        app:boxCornerRadiusBottomEnd="8dp"
+        app:boxCornerRadiusBottomStart="8dp"
+        app:boxCornerRadiusTopEnd="8dp"
+        app:boxCornerRadiusTopStart="8dp">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/etEmail"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="60dp"
             android:hint="Correo electrónico"
             android:inputType="textEmailAddress"
             android:maxLines="1"
             android:textSize="16sp"
-            android:textColor="@color/black" />
+            android:textColor="#000000" />
 
     </com.google.android.material.textfield.TextInputLayout>
 
     <com.google.android.material.textfield.TextInputLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="16dp"
+        android:layout_marginBottom="24dp"
         app:boxBackgroundMode="outline"
-        app:boxStrokeColor="@color/colorPrimary"
-        app:hintTextColor="@color/colorPrimary"
-        app:endIconMode="password_toggle">
+        app:boxStrokeColor="#2196F3"
+        app:hintTextColor="#2196F3"
+        app:endIconMode="password_toggle"
+        app:endIconTint="#2196F3"
+        app:boxCornerRadiusBottomEnd="8dp"
+        app:boxCornerRadiusBottomStart="8dp"
+        app:boxCornerRadiusTopEnd="8dp"
+        app:boxCornerRadiusTopStart="8dp">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/etPassword"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="60dp"
             android:hint="Contraseña"
             android:inputType="textPassword"
             android:maxLines="1"
             android:textSize="16sp"
-            android:textColor="@color/black" />
+            android:textColor="#000000" />
 
     </com.google.android.material.textfield.TextInputLayout>
 
@@ -84,28 +97,27 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:layout_marginBottom="16dp">
+        android:layout_marginBottom="24dp">
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Selecciona el rol del usuario"
-            android:textSize="14sp"
+            android:textSize="16sp"
             android:textStyle="bold"
-            android:textColor="@color/colorPrimary"
-            android:layout_marginBottom="8dp"
+            android:textColor="#2196F3"
+            android:layout_marginBottom="12dp"
             android:paddingStart="4dp" />
 
         <Spinner
             android:id="@+id/spRol"
             android:layout_width="match_parent"
-            android:layout_height="56dp"
-            android:minHeight="56dp"
+            android:layout_height="60dp"
+            android:minHeight="60dp"
             android:background="@drawable/spinner_background"
             android:paddingStart="16dp"
             android:paddingEnd="16dp"
-            android:popupBackground="@color/white"
-            android:spinnerMode="dropdown" />
+            android:popupBackground="@android:color/white" />
 
     </LinearLayout>
 
@@ -123,7 +135,8 @@
             android:layout_weight="1"
             android:background="@drawable/button_outline"
             android:text="Cancelar"
-            android:textColor="@color/colorPrimary" />
+            android:textSize="16sp"
+            android:textColor="#2196F3" />
 
         <Button
             android:id="@+id/btnGuardar"
@@ -131,8 +144,9 @@
             android:layout_height="56dp"
             android:layout_weight="1"
             android:text="Guardar"
-            android:textColor="@color/white"
-            android:backgroundTint="@color/colorPrimary"
+            android:textSize="16sp"
+            android:textColor="@android:color/white"
+            android:backgroundTint="#2196F3"
             android:layout_marginStart="8dp" />
 
     </LinearLayout>
