@@ -14,7 +14,7 @@
         android:orientation="vertical"
         android:padding="24dp">
 
-        <!-- Header sin icono -->
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="128dp"
@@ -46,7 +46,7 @@
 
         </LinearLayout>
 
-        <!-- Tarjeta -->
+
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -61,7 +61,7 @@
                 android:orientation="vertical"
                 android:padding="8dp">
 
-                <!-- Gestión de Productos -->
+
                 <LinearLayout
                     android:id="@+id/btnGestionarProductos"
                     android:layout_width="match_parent"
@@ -91,7 +91,7 @@
                         android:textSize="13sp" />
                 </LinearLayout>
 
-                <!-- Gestión de Usuarios -->
+
                 <LinearLayout
                     android:id="@+id/btnGestionarUsuarios"
                     android:layout_width="match_parent"
@@ -121,7 +121,7 @@
                         android:textSize="13sp" />
                 </LinearLayout>
 
-                <!-- Ver Reportes -->
+
                 <LinearLayout
                     android:id="@+id/btnVerReportes"
                     android:layout_width="match_parent"
@@ -155,9 +155,7 @@
 
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- Botón cerrar sesión -->
 
-        <!-- Footer -->
         <Button
             android:id="@+id/btnCerrarSesion"
             android:layout_width="match_parent"

@@ -143,38 +143,61 @@ class MainActivity : AppCompatActivity() {
 
     private fun abrirProductos() {
         try {
+            println("DEBUG: Botón Ver Productos clickeado")
             val fragment = ProductosFragment()
             loadFragment(fragment, "ProductosFragment")
         } catch (e: Exception) {
+            println("DEBUG: Error en abrirProductos: ${e.message}")
             showToast("Error abriendo productos")
         }
     }
 
     private fun abrirCarrito() {
         try {
+            println("DEBUG: Botón Ver Carrito clickeado")
             val fragment = CarritoFragment()
             loadFragment(fragment, "CarritoFragment")
         } catch (e: Exception) {
+            println("DEBUG: Error en abrirCarrito: ${e.message}")
             showToast("Error abriendo carrito")
         }
     }
 
     private fun abrirMisPedidos() {
         try {
+            println("DEBUG: Botón Mis Pedidos clickeado")
             val fragment = HomeFragment()
-            loadFragment(fragment, "homeFragment")
+            loadFragment(fragment, "HomeFragment")
         } catch (e: Exception) {
+            println("DEBUG: Error en abrirMisPedidos: ${e.message}")
             showToast("Error abriendo pedidos")
         }
     }
 
+    // SOLO UNA DEFINICIÓN DE loadFragment - ELIMINA LAS DUPLICADAS
     private fun loadFragment(fragment: Fragment, tag: String) {
         try {
-            supportFragmentManager.beginTransaction()
-                .replace(R.id.fragment_container, fragment, tag)
-                .addToBackStack(tag)
-                .commit()
+            println("DEBUG: Iniciando carga de fragment: $tag")
+
+            val transaction = supportFragmentManager.beginTransaction()
+
+            // Agregar animación para ver visualmente el cambio
+            transaction.setCustomAnimations(
+                android.R.anim.fade_in,
+                android.R.anim.fade_out,
+                android.R.anim.fade_in,
+                android.R.anim.fade_out
+            )
+
+            transaction.replace(R.id.fragment_container, fragment, tag)
+            transaction.addToBackStack(tag)
+            transaction.commit()
+
+            println("DEBUG: Fragment $tag cargado exitosamente")
+
         } catch (e: Exception) {
+            println("DEBUG: Error en loadFragment: ${e.message}")
+            e.printStackTrace()
             showToast("Error cargando la pantalla")
         }
     }
